@@ -1,0 +1,138 @@
+[
+    {
+        "location": "Umstead Park",
+        "name": "Umstead Park North Course",
+        "type": "standard",
+        "in_order": true,
+        "controls": [
+            {
+                "number": "81",
+                "points": 0
+            },
+            {
+                "number": "95",
+                "points": 0
+            },
+            {
+                "number": "86",
+                "points": 0
+            },
+            {
+                "number": "82",
+                "points": 0
+            },
+            {
+                "number": "96",
+                "points": 0
+            },
+            {
+                "number": "85",
+                "points": 0
+            },
+            {
+                "number": "83",
+                "points": 0
+            },
+            {
+                "number": "97",
+                "points": 0
+            }
+        ]
+    },
+    {
+        "location": "Umstead Park",
+        "name": "Umstead Park South Course",
+        "type": "standard",
+        "in_order": true,
+        "controls": [
+            {
+                "number": "91",
+                "points": 0
+            },
+            {
+                "number": "83",
+                "points": 0
+            },
+            {
+                "number": "84",
+                "points": 0
+            },
+            {
+                "number": "90",
+                "points": 0
+            },
+            {
+                "number": "82",
+                "points": 0
+            },
+            {
+                "number": "95",
+                "points": 0
+            },
+            {
+                "number": "93",
+                "points": 0
+            },
+            {
+                "number": "97",
+                "points": 0
+            }
+        ]
+    },
+    {
+        "location": "Lake Raleigh",
+        "name": "Lake Raleigh Score Course",
+        "type": "score",
+        "in_order": false,
+        "controls": [
+            {
+                "number": "81",
+                "points": 49
+            },
+            {
+                "number": "82",
+                "points": 47
+            },
+            {
+                "number": "83",
+                "points": 48
+            },
+            {
+                "number": "94",
+                "points": 46
+            },
+            {
+                "number": "85",
+                "points": 43
+            },
+            {
+                "number": "86",
+                "points": 39
+            },
+            {
+                "number": "87",
+                "points": 42
+            },
+            {
+                "number": "88",
+                "points": 40
+            },
+            {
+                "number": "89",
+                "points": 36
+            },
+            {
+                "number": "90",
+                "points": 37
+            },
+            {
+                "number": "91",
+                "points": 35
+            },
+            {
+                "number": "92",
+                "points": 38
+            }
+        ]
+    }
+]

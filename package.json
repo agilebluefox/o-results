@@ -1,0 +1,32 @@
+{
+  "name": "o-results",
+  "version": "1.0.0",
+  "description": "Import orienteering results for analysis and presentation",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "mocha test.js",
+    "watch": "gulp watch",
+    "mongod": "mongod --dbpath /Users/daconner/data/db --bind_ip localhost"
+  },
+  "keywords": [
+    "NodeJS",
+    "Express",
+    "MongoDB",
+    "Mongoose"
+  ],
+  "author": "David Conner",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.14.0",
+    "mongoose": "^4.5.10",
+    "mongoose-unique-validator": "^1.0.2"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "chai-http": "^3.0.0",
+    "gulp": "^3.9.1",
+    "gulp-mocha": "^3.0.1",
+    "mocha": "^3.0.2"
+  }
+}

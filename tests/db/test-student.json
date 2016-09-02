@@ -1,42 +1,42 @@
 [
     {
-        "_id": "daconner",
+        "unityid": "daconner",
         "email": "daconner@ncsu.edu",
         "firstname": "David",
         "lastname": "Conner",
         "sex": 1,
-        "class_id": []
+        "class": []
     },
     {
-        "_id": "jdoe",
+        "unityid": "jdoe",
         "email": "jdoe@ncsu.edu",
         "firstname": "John",
         "lastname": "Doe",
         "sex": 1,
-        "class_id": []
+        "class": []
     },
     {
-        "_id": "jdoe02",
+        "unityid": "jdoe02",
         "email": "jdoe02@ncsu.edu",
         "firstname": "Jane",
         "lastname": "Doe",
         "sex": 0,
-        "class_id": []
+        "class": []
     },
     {
-        "_id": "msmith",
+        "unityid": "msmith",
         "email": "msmith@ncsu.edu",
         "firstname": "Michael",
         "lastname": "Smith",
         "sex": 1,
-        "class_id": []
+        "class": []
     },
     {
-        "_id": "rwalker",
+        "unityid": "rwalker",
         "email": "rwalker@ncsu.edu",
         "firstname": "Rachel",
         "lastname": "Walker",
         "sex": 0,
-        "class_id": []
+        "class": []
     }
 ]

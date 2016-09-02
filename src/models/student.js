@@ -6,7 +6,7 @@ const mongooseUniqueValidator = require('mongoose-unique-validator');
 
 let schema = new Schema( {
     // Unity Id of the student
-    _id: { type: String, required: true, unique: true },
+    unityid: { type: String, required: true, unique: true },
     // The email address is the unityId@ncsu.edu
     email: { type: String, required: true, lowercase: true, unique: true, match: /.+@ncsu.edu/ },
     firstname: { type: String, required: true },

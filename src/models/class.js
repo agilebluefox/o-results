@@ -9,8 +9,7 @@ let schema = new Schema( {
     prefix: { type: String, required: true },
     number: { type: String, required: true },
     name: { type: String, required: true },
-    section: { type: String, required: true },
-    events: [ { type: Schema.Types.ObjectId, ref: 'Event' } ]
+    section: { type: String, required: true }
 });
 
 module.exports = mongoose.model('Class', schema);

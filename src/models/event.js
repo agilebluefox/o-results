@@ -11,7 +11,9 @@ let schema = new Schema( {
     name: { type: String, required: true },
     date: { type: Date, required: true },
     // An event can have more than one course
-    courses: [{type: Schema.Types.ObjectId, ref: 'Course', required: true}]
+    courses: [{type: Schema.Types.ObjectId, ref: 'Course'}],
+    // more than one class can participate in an event
+    classes: [ { type: Schema.Types.ObjectId, ref: 'Class' }]
 });
 
 schema.plugin(mongooseUniqueValidator);

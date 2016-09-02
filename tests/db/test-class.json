@@ -5,8 +5,7 @@
         "prefix": "HESO",
         "number": "253",
         "name": "Orienteering",
-        "section": "194",
-        "events": []
+        "section": "194"
     },
     {
         "year": 2016,
@@ -14,8 +13,7 @@
         "prefix": "HESO",
         "number": "253",
         "name": "Orienteering",
-        "section": "196",
-        "events": []
+        "section": "196"
     },
     {
         "year": 2015,
@@ -23,8 +21,7 @@
         "prefix": "HESO",
         "number": "253",
         "name": "Orienteering",
-        "section": "194",
-        "events": []
+        "section": "194"
     },
     {
         "year": 2015,
@@ -32,7 +29,6 @@
         "prefix": "HESO",
         "number": "253",
         "name": "Orienteering",
-        "section": "096",
-        "events": []
+        "section": "096"
     }
 ]

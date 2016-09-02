@@ -17,9 +17,8 @@ let schema = new Schema( {
     card: { type: Schema.Types.ObjectId, ref: 'Card', required: true },
     // How do I deal with the actual data associated with the result?
     student: { type: Schema.Types.ObjectId, ref: 'Student', required: true },
-    control_number: { type: String },
-    control_dow: { type: String },
-    time_punched: { type: Date } 
+    cn: { type: String },
+    time: { type: Date } 
 });
 
 schema.plugin(mongooseUniqueValidator);

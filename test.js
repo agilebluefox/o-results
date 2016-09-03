@@ -15,11 +15,10 @@ const Class = require('./src/models/class');
 const classData = require('./tests/db/test-class.json');
 
 // Setup components to test
-describe('Test file is ready', function () {
+describe('Test file is ready: ', function () {
     it('ready', function () {
         let ar = [];
         expect(ar).to.be.empty;
-        console.log('The test file is ready to add some tests!');
     });
 });
 
@@ -27,8 +26,8 @@ describe('Test file is ready', function () {
 describe('The class collection: ', function () {
     // Make a connection to the database
     before(function (done) {
-        
-        let addClass = function(data) {
+
+        let addClass = function (data) {
             for (let i = 0; i < data.length; i++) {
                 let entry = new Class({
                     year: data[i].year,
@@ -40,7 +39,7 @@ describe('The class collection: ', function () {
                 });
                 entry.save();
             }
-            return done();
+            done();
         };
 
         mongoose.connect(uri, function (error) {
@@ -52,27 +51,24 @@ describe('The class collection: ', function () {
 
         // Empty the collections in the db
         Class.remove().exec()
-        // Load the class collection
-        .then(addClass(classData))
-        .then(console.log('The class collection has loaded four documents'));
+            // Load the class collection
+            .then(addClass(classData));
     });
 
     // After the tests, disconnect from the db
     after(function (done) {
-        mongoose.disconnect(console.log('Mongoose disconnected'));
+        mongoose.disconnect();
         return done();
     });
 
     // Check that the documents were loaded
     it('The class collection contains four documents', function (done) {
         //The result should be an array of docs
-        let result = Class.find({}, function(error, docs) {
+        Class.find({}, function (error, docs) {
             if (error) console.log(error);
-            console.log(docs);
-            return docs;
+            expect(docs.length).to.equal(4);
+            return done();
         });
-        expect(result.length).to.equal(4); 
-        return done();
     });
 
 });

@@ -18,6 +18,7 @@
   "author": "David Conner",
   "license": "ISC",
   "dependencies": {
+    "bluebird": "^3.4.6",
     "express": "^4.14.0",
     "mongoose": "^4.5.10",
     "mongoose-unique-validator": "^1.0.2"

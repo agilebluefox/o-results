@@ -3,49 +3,57 @@
        "location": "Lake Raleigh",
        "name": "Lake Raleigh Score Event",
        "date": "",
-       "courses": []
+       "courses": [],
+       "classes": []
     },
     {
        "location": "Lake Johnson",
        "name": "Lake Johnson Event",
        "date": "",
-       "courses": []
+       "courses": [],
+       "classes": []
     },
     {
        "location": "Schenck Forest",
        "name": "Schenck Forest Event",
        "date": "",
-       "courses": []
+       "courses": [],
+       "classes": []
     },
     {
        "location": "Umstead Park",
        "name": "Umstead Park Event",
        "date": "",
-       "courses": []
+       "courses": [],
+       "classes": []
     },
     {
        "location": "Lake Raleigh",
        "name": "Lake Raleigh Score Event",
        "date": "",
-       "courses": []
+       "courses": [],
+       "classes": []
     },
     {
        "location": "Lake Johnson",
        "name": "Lake Johnson Event",
        "date": "",
-       "courses": []
+       "courses": [],
+       "classes": []
     },
     {
        "location": "Schenck Forest",
        "name": "Schenck Forest Event",
        "date": "",
-       "courses": []
+       "courses": [],
+       "classes": []
     },
     {
        "location": "Umstead Park",
        "name": "Umstead Park Event",
        "date": "",
-       "courses": []
+       "courses": [],
+       "classes": []
     }
     
 ]

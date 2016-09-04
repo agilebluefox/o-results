@@ -12,4 +12,9 @@ let schema = new Schema( {
     section: { type: String, required: true }
 });
 
+// Create a unique title property for the class
+schema.virtual('title').get(function() {
+    return `${this.prefix} ${this.number}-${this.section} ${this.name}, ${this.semester} ${this.year}`;
+});
+
 module.exports = mongoose.model('Class', schema);

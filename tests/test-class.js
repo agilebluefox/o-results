@@ -28,14 +28,6 @@ let addClass = function (data) {
     return;
 };
 
-// Setup components to test
-describe('Test file is ready: ', function () {
-    it('ready', function () {
-        let ar = [];
-        expect(ar).to.be.empty;
-    });
-});
-
 // Test the class collection
 describe('The class collection: ', function () {
     before(function(){
@@ -46,12 +38,21 @@ describe('The class collection: ', function () {
     });
    
     // Check that the documents were loaded
-    it('The class collection contains four documents', function (done) {
+    it('contains four documents', function (done) {
 
         //The result should be an array of docs
         Class.find({}, function (error, docs) {
             if (error) console.log(error);
             expect(docs.length).to.equal(4);
+            return done();
+        });
+    });
+
+    it('returns a unique and descriptive title for each class', function(done) {
+        Class.findOne({}, function(error, doc) {
+            if (error) return console.log(error);
+            // Check the mongoose virtual title property
+            expect(doc.title).to.match(/HESO 253-[0-9]{3} Orienteering, (Fall|Spring) 20[0-9]{2}/);
             return done();
         });
     });

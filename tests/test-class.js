@@ -1,6 +1,6 @@
 'use strict()';
 
-const setup = require('./tests/setup-tests');
+const setup = require('./setup-tests');
 // Require assertion library
 const expect = require('chai').expect;
 
@@ -10,8 +10,8 @@ const mongoose = require('mongoose');
 mongoose.Promise = require('bluebird');
 
 // Require models
-const Class = require('./src/models/class');
-const classData = require('./tests/data/test-class.json');
+const Class = require('../src/models/class');
+const classData = require('./data/test-class.json');
 
 let addClass = function (data) {
     for (let i = 0; i < data.length; i++) {

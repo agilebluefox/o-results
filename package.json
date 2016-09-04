@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "mocha test.js",
+    "test": "mocha",
     "watch": "gulp watch",
     "mongod": "mongod --dbpath /Users/daconner/data/db --bind_ip localhost"
   },

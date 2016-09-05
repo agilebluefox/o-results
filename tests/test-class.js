@@ -6,35 +6,35 @@ const expect = require('chai').expect;
 
 // Load the mongoose library
 const mongoose = require('mongoose');
-// Maybe I can use promises instead of callbacks?
-mongoose.Promise = require('bluebird');
 
 // Require models
 const Class = require('../src/models/class');
-const classData = require('./data/test-class.json');
+const data = require('./data/test-class.json');
 
-let addClass = function (data) {
-    for (let i = 0; i < data.length; i++) {
-        let entry = new Class({
-            year: data[i].year,
-            semester: data[i].semester,
-            prefix: data[i].prefix,
-            number: data[i].number,
-            name: data[i].name,
-            section: data[i].section
+function addClass(data) {
+    data.forEach(function(entry) {
+        Class.create({
+            year: entry.year,
+            semester: entry.semester,
+            prefix: entry.prefix,
+            number: entry.number,
+            name: entry.name,
+            section: entry.section
+        }, function(error, entry) {
+            if (error) console.log(error);
         });
-    entry.save();
-    }
+    });
     return;
-};
+}
 
 // Test the class collection
 describe('The class collection: ', function () {
-    before(function(){
+    before(function(done){
         // Empty the collection
-        Class.remove().exec()
+        Class.remove().exec();
         // Load the collections in the db
-        .then(addClass(classData));
+        addClass(data);
+        return done();
     });
    
     // Check that the documents were loaded

@@ -11,20 +11,11 @@ const mongoose = require('mongoose');
 const Class = require('../src/models/class');
 const data = require('./data/test-class.json');
 
-function addClass(data) {
-    data.forEach(function(entry) {
-        Class.create({
-            year: entry.year,
-            semester: entry.semester,
-            prefix: entry.prefix,
-            number: entry.number,
-            name: entry.name,
-            section: entry.section
-        }, function(error, entry) {
-            if (error) console.log(error);
-        });
+function addClass(data, done) {
+    Class.create(data, function(error, classes) {
+        if (error) console.log(error);
+        return done();
     });
-    return;
 }
 
 // Test the class collection
@@ -33,12 +24,11 @@ describe('The class collection: ', function () {
         // Empty the collection
         Class.remove().exec();
         // Load the collections in the db
-        addClass(data);
-        return done();
+        addClass(data, done);
     });
    
     // Check that the documents were loaded
-    it('contains four documents', function (done) {
+    it('Contains four documents', function (done) {
 
         //The result should be an array of docs
         Class.find({}, function (error, docs) {
@@ -48,7 +38,7 @@ describe('The class collection: ', function () {
         });
     });
 
-    it('returns a unique and descriptive title for each class', function(done) {
+    it('Returns a unique and descriptive title for each class', function(done) {
         Class.findOne({}, function(error, doc) {
             if (error) return console.log(error);
             // Check the mongoose virtual title property

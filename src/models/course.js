@@ -12,13 +12,12 @@ let schema = new Schema( {
     in_order: { type: Boolean, required: true },
     controls: [ 
         { 
-            number: { type: String, required: true, unique: true },
-            type: { type: String, required: true, unique: true },
+            number: { type: String, required: true },
+            type: { type: String, required: true },
             points: { type: Number }
         }
      ]
 });
-
 
 // Register the validator using the plugin method
 schema.plugin(mongooseUniqueValidator);

@@ -1,9 +1,11 @@
 [
     {
         "location": "Umstead Park",
+        "mapdate": "2013-06-01",
         "name": "Umstead Park North Course",
-        "type": "standard",
-        "in_order": true,
+        "codename": "upnc20130601-0001",
+        "type": "classic",
+        "inorder": true,
         "controls": [
             {
                 "number": "2",
@@ -64,9 +66,11 @@
     },
     {
         "location": "Umstead Park",
+        "mapdate": "2013-06-01",
         "name": "Umstead Park South Course",
-        "type": "standard",
-        "in_order": true,
+        "codename": "upsc20130601-0001",
+        "type": "classic",
+        "inorder": true,
         "controls": [
             {
                 "number": "2",
@@ -127,9 +131,11 @@
     },
     {
         "location": "Lake Raleigh",
+        "mapdate": "2015-08-01",
         "name": "Lake Raleigh Score Course",
+        "codename": "lrsc20150801-0001",
         "type": "score",
-        "in_order": false,
+        "inorder": false,
         "controls": [
             {
                 "number": "2",

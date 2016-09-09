@@ -39,9 +39,6 @@ describe('Student collection: ', function() {
     // Clear the collection before running the tests
     before('Empty the student collection', function(done) {     
         Student.remove().exec();
-        Student.find({}, function(error, students) {
-            if (error) console.log(error);
-        });
         return done();       
     });
 

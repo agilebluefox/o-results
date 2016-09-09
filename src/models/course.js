@@ -8,8 +8,10 @@ const mongooseUniqueValidator = require('mongoose-unique-validator');
 let schema = new Schema( {
     location: { type: String, required: true },
     name: { type: String, required: true },
+    mapdate: { type: String, required: true },
+    codename: { type: String, required: true, unique: true },
     type: { type: String, required: true },
-    in_order: { type: Boolean, required: true },
+    inorder: { type: Boolean, required: true },
     controls: [ 
         { 
             number: { type: String, required: true },

@@ -16,7 +16,7 @@ let schema = new Schema( {
     card: { type: Number, required: true },
     student: { type: Schema.Types.ObjectId, ref: 'Student', required: true },
     cn: { type: String },
-    time: { type: String } 
+    time: { type: Date } 
 });
 
 schema.plugin(mongooseUniqueValidator);

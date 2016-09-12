@@ -11,6 +11,12 @@ const mongoose = require('mongoose');
 const Course = require('../src/models/course');
 const data = require('./data/test-course.json');
 
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
 function addCourses(data, done) {
     let count = 0;
     data.forEach(function(course) {
@@ -21,11 +27,19 @@ function addCourses(data, done) {
         name.forEach(function(word) {
             initials += word.substr(0,1);
         });
-        date = course.mapdate.split('-');
-        year = date[0];
-        month = date[1];
-        day = date[2];
-        codename = initials + year + month + day;
+        // Create a date object from the UTC formatted string
+        date = new Date (course.mapdate);
+        // Extract the year, month, and day
+        year = date.getFullYear();
+        month = date.getMonth() + 1;
+        day = date.getDate();
+        // generate random number to add to end
+        let min = 1000;
+        let max = 10000;
+        let random = getRandomInt(min, max);
+        // Use the intials, date components, and random number
+        // to create a "unique" codename in case I need it later
+        codename = initials + year + month + day + "-" + random;
         Course.create({
             "location": course.location,
             "mapdate": course.mapdate,
@@ -75,12 +89,11 @@ describe('Course collection: ', function(done) {
         });
     });
 
-    // Confirm the codename is correct
+    // Confirm the codename is unique
     it('Stores a unique codename for the course', function(done) {
-        Course.find({ codename: "upnc20130601" }, function(error, courses) {
+        Course.find().distinct('codename', function(error, courses) {
             if (error) console.log(error);
-            expect(courses.length).to.equal(1);
-            expect(courses[0].codename).to.equal('upnc20130601');
+            expect(courses.length).to.equal(3);
             return done();
         });
     });

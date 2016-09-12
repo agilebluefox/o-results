@@ -8,7 +8,10 @@ const mongooseUniqueValidator = require('mongoose-unique-validator');
 let schema = new Schema( {
     location: { type: String, required: true },
     name: { type: String, required: true },
+    // Add the course design date
     mapdate: { type: String, required: true },
+    // Add a property to include in the raw data file to create a connection
+    // to the course
     codename: { type: String, required: true, unique: true },
     type: { type: String, required: true },
     inorder: { type: Boolean, required: true },

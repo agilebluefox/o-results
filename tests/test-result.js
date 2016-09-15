@@ -7,8 +7,6 @@ const expect = require('chai').expect;
 // Load the mongoose library
 const mongoose = require('mongoose');
 
-const EventEmitter = require('events');
-
 // Require models
 const Card = require('../src/models/card');
 const Result = require('../src/models/result');
@@ -18,43 +16,46 @@ const Student = require('../src/models/student');
 const data = require('./data/test-result.json');
 
 function addResults(data, event, courses, students, cards, done) {
-    let myEmitter = new EventEmitter();
-    myEmitter.on('resultDone', () => {
-      if (count === data.length) {
-            Result.collection.insert(data, function(error, entry) {
-                if (error) console.log(error);
-                return done();
-            });
-        }
-    });
 
     let count = 0;
-    let numResult = 0;
-    let course;
+    let student, card, course;
+
+    // Loop over the results in the mock data file
     data.forEach(function (result) {
-        let student;
-        let card;
-        Student.findOne({ "unityid": result.unityid }, function (error, entry) {
-            if (error) console.log(error);
-            student = entry;
-            Card.findOne({ "number": result.card }, function (error, entry) {
-                if (error) console.log(error);
-                card = entry;
-                result.card = card;
-                result.student = student;
-                if (student.unityid === 'daconner' || student.unityid === 'jdoe') {
-                    result.course = courses[0].id;
-                } else {
-                    result.course = courses[1].id;
-                }
 
-                result.event = event;
-                count += 1;
-                myEmitter.emit('resultDone');
-            });
-
+        // Get a student from the array
+        student = students.find(function (student) {
+            return student.unityid === result.unityid;
         });
-        
+
+        // Assign a course based on the unityid
+        console.log(student);
+
+        if (student.unityid === 'daconner' || student.unityid === 'jdoe') {
+            course = courses[0];
+        } else {
+            course = courses[1];
+        }
+
+        card = cards.find(function (card) {
+            return card.number === result.card;
+        });
+
+        Result.create({
+            "event": event.id,
+            "course": course.id,
+            "card": card.number,
+            "student": student.id,
+            "cn": result.cn,
+            "time": result.time
+        });
+
+        count += 1;
+
+        if (count === data.length) {
+            return done();
+        }
+
     });
 
 }

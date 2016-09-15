@@ -12,7 +12,7 @@ const Card = require('../src/models/card');
 const data = require('./data/test-card.json');
 
 // Insert test data to Card collection
-function addCards(data) {
+function addCards(data, done) {
     data.forEach(function(card) {
         Card.create({
             number: card.number
@@ -20,14 +20,13 @@ function addCards(data) {
             if (error) console.log(error);
         });
     });
-    return;
+    return done();
 }
 
 describe('Card collection: ', function() {
     before(function(done) {
         Card.remove().exec();
-        addCards(data);
-        return done();
+        addCards(data, done);
     });
 
     it('contains four documents', function(done) {

@@ -51,10 +51,10 @@ function addResults(data, event, courses, students, cards, done) {
         });
 
         count += 1;
-
         if (count === data.length) {
             return done();
         }
+
 
     });
 

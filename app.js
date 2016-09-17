@@ -29,12 +29,12 @@ const logger = new (winston.Logger)({
     new (winston.transports.Console)({
       timestamp: tsFormat,
       colorize: true,
-      level: 'info'
+      level: env === 'development' ? 'debug' : 'info'
     }),
     new (winston.transports.File)({
       filename: `${logDir}/results.log`,
       timestamp: tsFormat,
-      level: env === 'development' ? 'debug' : 'info'
+      level: 'info'
     })
   ]
 });

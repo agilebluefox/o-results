@@ -11,7 +11,7 @@
 
 ## Database Design
 
-https://docs.google.com/document/d/1iyf--09R91Ns6RP4O7Y4oFLezy2nD1aN8UlVYKpeeQ8/edit
+[Mongo DB Design](https://docs.google.com/document/d/1iyf--09R91Ns6RP4O7Y4oFLezy2nD1aN8UlVYKpeeQ8/edit)
 
 ## Test Queries
 

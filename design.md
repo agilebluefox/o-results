@@ -9,6 +9,9 @@
 - Code individual mongoose models for document types
 - Write tests for each of the db models
 
+## Database Design
+
+https://docs.google.com/document/d/1iyf--09R91Ns6RP4O7Y4oFLezy2nD1aN8UlVYKpeeQ8/edit
 
 ## Test Queries
 

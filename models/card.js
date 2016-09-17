@@ -1,10 +1,11 @@
 'use strict()';
 
 const mongoose = require('mongoose');
+
 const Schema = mongoose.Schema;
 const mongooseUniqueValidator = require('mongoose-unique-validator');
 
-let schema = new Schema( {
+const schema = new Schema({
     // card number
     number: { type: String, required: true }
 });

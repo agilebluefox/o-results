@@ -1,11 +1,12 @@
 'use strict()';
 
 const mongoose = require('mongoose');
+
 const Schema = mongoose.Schema;
 // Require the mongoose validator to enforce the unique requirement.
 const mongooseUniqueValidator = require('mongoose-unique-validator');
 
-let schema = new Schema( {
+const schema = new Schema({
     location: { type: String, required: true },
     name: { type: String, required: true },
     // Add the course design date

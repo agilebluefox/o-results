@@ -1,10 +1,11 @@
 'use strict()';
 
 const mongoose = require('mongoose');
+
 const Schema = mongoose.Schema;
 const mongooseUniqueValidator = require('mongoose-unique-validator');
 
-let schema = new Schema( {
+const schema = new Schema({
     // Unity Id of the student
     unityid: { type: String, required: true, unique: true },
     // The email address is the unityId@ncsu.edu

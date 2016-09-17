@@ -2,7 +2,7 @@
 
 const express = require('express');
 const path = require('path');
-const favicon = require('serve-favicon'); // eslint-disable-line
+// const favicon = require('serve-favicon');
 const expressWinston = require('express-winston');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
@@ -42,7 +42,6 @@ app.use(expressWinston.errorLogger({
     })
   ]
 }));
-
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));

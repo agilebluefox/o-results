@@ -1,0 +1,86 @@
+[
+    {
+        "number": "1",
+        "type": "station"
+    },
+    {
+        "number": "2",
+        "type": "clear"
+    },
+    {
+        "number": "3",
+        "type": "start"
+    },
+    {
+        "number": "4",
+        "type": "finish"
+    },
+    {
+        "number": "81",
+        "type": "control"
+    },
+    {
+        "number": "82",
+        "type": "control"
+    },
+    {
+        "number": "83",
+        "type": "control"
+    },
+    {
+        "number": "84",
+        "type": "control"
+    },
+    {
+        "number": "85",
+        "type": "control"
+    },
+    {
+        "number": "86",
+        "type": "control"
+    },
+    {
+        "number": "87",
+        "type": "control"
+    },
+    {
+        "number": "88",
+        "type": "control"
+    },
+    {
+        "number": "89",
+        "type": "control"
+    },
+    {
+        "number": "90",
+        "type": "control"
+    },
+    {
+        "number": "91",
+        "type": "control"
+    },
+    {
+        "number": "92",
+        "type": "control"
+    },
+    {
+        "number": "93",
+        "type": "control"
+    },
+    {
+        "number": "94",
+        "type": "control"
+    },
+    {
+        "number": "95",
+        "type": "control"
+    },
+    {
+        "number": "96",
+        "type": "control"
+    },
+    {
+        "number": "97",
+        "type": "control"
+    }
+]

@@ -1,0 +1,12 @@
+{
+    "extends": "rallycoding",
+    "env": {
+        "mocha": true,
+        "es6": true,
+        "node": true,
+        "mongo": true
+    },
+    "rules": {
+        "no-unused-expressions": 0
+    }
+}

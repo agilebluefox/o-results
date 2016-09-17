@@ -3,7 +3,7 @@
 const expect = require('./setup-tests');
 
 // Require models
-const Class = require('../src/models/class');
+const Class = require('../models/class');
 const data = require('./data/test-class.json');
 
 function addClass(done) {
@@ -34,7 +34,7 @@ describe('The class collection: ', () => {
 
     it('Returns a unique and descriptive title for each class', (done) => {
         Class.findOne({}, (error, doc) => {
-            if (error) return console.log(error);
+            if (error || !doc) return console.log(error);
             // Check the mongoose virtual title property
             expect(doc.title).to.match(/HESO 253-[0-9]{3} Orienteering, (Fall|Spring) 20[0-9]{2}/);
             return done();

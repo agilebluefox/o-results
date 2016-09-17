@@ -3,7 +3,7 @@
 const expect = require('./setup-tests');
 
 // Require models
-const Course = require('../src/models/course');
+const Course = require('../models/course');
 const data = require('./data/test-course.json');
 
 function getRandomInt(min, max) {

@@ -3,11 +3,11 @@
 const expect = require('./setup-tests');
 
 // Require models
-const Card = require('../src/models/card');
-const Result = require('../src/models/result');
-const Course = require('../src/models/course');
-const Event = require('../src/models/event');
-const Student = require('../src/models/student');
+const Card = require('../models/card');
+const Result = require('../models/result');
+const Course = require('../models/course');
+const Event = require('../models/event');
+const Student = require('../models/student');
 const data = require('./data/test-result.json');
 
 // Store the result in the model with the required object ids
@@ -18,7 +18,7 @@ function addResults(event, courses, students, cards, done) {
     // Loop over the results in the mock data file
     data.forEach((result) => {
         // Get a student id from the array based on the unityid field in the result
-        const student = students.find(function (entry) {
+        const student = students.find((entry) => {
             return entry.unityid === result.unityid;
         });
 
@@ -33,7 +33,7 @@ function addResults(event, courses, students, cards, done) {
 
         // Get the card id from the array based on the number in the result
         
-        const card = cards.find(function (entry) {
+        const card = cards.find((entry) => {
             return entry.number === result.card;
         });
 

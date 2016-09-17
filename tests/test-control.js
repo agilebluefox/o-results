@@ -1,38 +1,33 @@
 'use strict()';
 
-const setup = require('./setup-tests');
-// Require assertion library
-const expect = require('chai').expect;
-
-// Load the mongoose library
-const mongoose = require('mongoose');
+const expect = require('./setup-tests');
 
 // Require models
-const Control = require('../src/models/control');
+const Control = require('../models/control');
 const data = require('./data/test-control.json');
 
 // Insert test data to Control collection
-function addControls (data, done) {
-    Control.create(data, function (error, controls) {
-        if (error) console.log(error);
+function addControls(done) {
+    Control.create(data, (error, controls) => {
+        if (error || !controls) console.log(error);
         return done();
     });
 }
 
-describe('Control collection: ', function() {
+describe('Control collection: ', () => {
     // Runs before all tests in this block
-    before('Empty the student collection', function(done) {
+    before('Empty the student collection', (done) => {
         Control.remove().exec();
         return done();
     });
 
-    before('Load the student collection', function(done) {
-        addControls(data, done);
+    before('Load the student collection', (done) => {
+        addControls(done);
     });
 
     // Confirm all the documents are loaded into the collection
-    it('Contains 21 documents', function(done) {
-        Control.find({}, function(error, docs) {
+    it('Contains 21 documents', (done) => {
+        Control.find({}, (error, docs) => {
             if (error) console.log(error);
             expect(docs.length).to.equal(21);
             return done();
@@ -40,8 +35,8 @@ describe('Control collection: ', function() {
     });
 
     // Confirm the type of the control number - string
-    it('Stores the control number as a string', function(done) {
-        Control.findOne({}, function(error, doc) {
+    it('Stores the control number as a string', (done) => {
+        Control.findOne({}, (error, doc) => {
             if (error) console.log(error);
             expect(doc.number).to.be.a('string');
             return done();
@@ -49,8 +44,8 @@ describe('Control collection: ', function() {
     });
 
     // Confirm the type contains values for the special controls
-    it('Stores the type of control', function (done) {
-        Control.findOne({ number: '1' }, function(error, doc) {
+    it('Stores the type of control', (done) => {
+        Control.findOne({ number: '1' }, (error, doc) => {
             if (error) console.log(error);
             expect(doc.type).to.equal('station');
             return done();

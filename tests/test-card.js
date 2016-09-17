@@ -3,7 +3,7 @@
 const expect = require('./setup-tests');
 
 // Require models
-const Card = require('../src/models/card');
+const Card = require('../models/card');
 const data = require('./data/test-card.json');
 
 // Insert test data to Card collection

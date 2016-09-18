@@ -3,10 +3,10 @@
 const expect = require('./setup-tests');
 
 // Require models
-const Class = require('../models/class');
-const Course = require('../models/course');
-const Event = require('../models/event');
-const data = require('./data/test-event.json');
+const Class = require('../models/classes');
+const Course = require('../models/courses');
+const Event = require('../models/events');
+const data = require('./data/test-events.json');
 
 // Function to insert an event into the Event collection
 // It should add a randomly selected class and course

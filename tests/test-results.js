@@ -3,12 +3,12 @@
 const expect = require('./setup-tests');
 
 // Require models
-const Card = require('../models/card');
-const Result = require('../models/result');
-const Course = require('../models/course');
-const Event = require('../models/event');
-const Student = require('../models/student');
-const data = require('./data/test-result.json');
+const Card = require('../models/cards');
+const Result = require('../models/results');
+const Course = require('../models/courses');
+const Event = require('../models/events');
+const Student = require('../models/students');
+const data = require('./data/test-results.json');
 
 // Store the result in the model with the required object ids
 function addResults(event, courses, students, cards, done) {

@@ -3,8 +3,8 @@
 const expect = require('./setup-tests');
 
 // Require models
-const Control = require('../models/control');
-const data = require('./data/test-control.json');
+const Control = require('../models/controls');
+const data = require('./data/test-controls.json');
 
 // Insert test data to Control collection
 function addControls(done) {

@@ -3,8 +3,8 @@
 const expect = require('./setup-tests');
 
 // Require models
-const Class = require('../models/class');
-const data = require('./data/test-class.json');
+const Class = require('../models/classes');
+const data = require('./data/test-classes.json');
 
 function addClass(done) {
     Class.create(data, (error, classes) => {

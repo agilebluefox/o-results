@@ -3,9 +3,9 @@
 const expect = require('./setup-tests');
 
 // Require models
-const Class = require('../models/class');
-const Student = require('../models/student');
-const data = require('./data/test-student.json');
+const Class = require('../models/classes');
+const Student = require('../models/students');
+const data = require('./data/test-students.json');
 
 // Function to insert a student into the Student collection
 function addStudent(classId, done) {

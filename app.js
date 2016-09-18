@@ -7,9 +7,13 @@ const expressWinston = require('express-winston');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const db = require('./models/db'); // eslint-disable-line
+
+// Prepare routes
 const routes = require('./routes/index');
 const users = require('./routes/users');
+const classes = require('./routes/classes');
 
+// Load the app
 const app = express();
 
 // Setup the logging
@@ -78,6 +82,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
 app.use('/users', users);
+app.use('/classes', classes);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {

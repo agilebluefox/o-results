@@ -14,10 +14,13 @@ const schema = new Schema({
 });
 
 // Create a unique title property for the class
+// schema.virtual('title').get(() =>
+//     `${this.prefix} ${this.number}-${this.section} \
+// ${this.name}, ${this.semester} ${this.year}`
+// );
 schema.virtual('title').get(function () {
-    const title = `${this.prefix} ${this.number}-${this.section} \
+    return `${this.prefix} ${this.number}-${this.section} \
 ${this.name}, ${this.semester} ${this.year}`;
-    return title;
 });
 
 module.exports = mongoose.model('Class', schema);

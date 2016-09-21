@@ -2,10 +2,10 @@
   "name": "o-results",
   "version": "1.0.0",
   "description": "Import orienteering results for analysis and presentation",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "start": "node ./bin/www",
-    "test": "mocha",
+    "test": "mocha ./tests",
     "watch": "gulp watch",
     "mongod": "mongod --dbpath /Users/daconner/data/db --bind_ip localhost"
   },

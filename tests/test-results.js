@@ -117,7 +117,7 @@ describe('Result collection: ', () => {
 
     // Confirm the number of documents is correct
     it('Contains 42 documents', (done) => {
-        Result.find({}, (error, results) => {
+        Result.find({ active: true }, (error, results) => {
             if (error) console.log(error);
             expect(results.length).to.equal(42);
             return done();

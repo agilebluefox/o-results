@@ -25,7 +25,7 @@ describe('Card collection: ', () => {
     });
 
     it('contains four documents', (done) => {
-        Card.find({}, (error, docs) => {
+        Card.find({ active: true }, (error, docs) => {
             if (error) console.log(error);
             expect(docs.length).to.equal(4);
             return done();

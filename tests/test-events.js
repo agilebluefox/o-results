@@ -52,7 +52,7 @@ describe('Event collection: ', () => {
     });
 
     it('Has eight documents', (done) => {
-        Event.find({}, (error, events) => {
+        Event.find({ active: true }, (error, events) => {
             if (error) console.log(error);
             expect(events.length).to.equal(8);
             return done();

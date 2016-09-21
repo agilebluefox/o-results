@@ -25,7 +25,7 @@ describe('The class collection: ', () => {
     // Check that the documents were loaded
     it('Contains four documents', (done) => {
         //The result should be an array of docs
-        Class.find({}, (error, docs) => {
+        Class.find({ active: true }, (error, docs) => {
             if (error) console.log(error);
             expect(docs.length).to.equal(4);
             return done();

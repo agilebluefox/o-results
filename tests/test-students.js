@@ -51,7 +51,7 @@ describe('Student collection: ', () => {
 
     // Confirm the number of students in the collection
     it('Contains five documents', (done) => {
-        Student.find({}, (error, students) => {
+        Student.find({ active: true }, (error, students) => {
             if (error) console.log(error);
             expect(students.length).to.equal(5);
             return done();

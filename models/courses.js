@@ -7,6 +7,7 @@ const Schema = mongoose.Schema;
 const mongooseUniqueValidator = require('mongoose-unique-validator');
 
 const schema = new Schema({
+    active: { type: Boolean, default: true },
     location: { type: String, required: true },
     name: { type: String, required: true },
     // Add the course design date
@@ -16,13 +17,13 @@ const schema = new Schema({
     codename: { type: String, required: true, unique: true },
     type: { type: String, required: true },
     inorder: { type: Boolean, required: true },
-    controls: [ 
-        { 
+    controls: [
+        {
             number: { type: String, required: true },
             type: { type: String, required: true },
             points: { type: Number }
         }
-     ]
+    ]
 });
 
 // Register the validator using the plugin method

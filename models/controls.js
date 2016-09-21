@@ -7,6 +7,7 @@ const Schema = mongoose.Schema;
 const mongooseUniqueValidator = require('mongoose-unique-validator');
 
 const schema = new Schema({
+    active: { type: Boolean, default: true },
     number: { type: String, required: true, unique: true },
     type: { type: String, required: true },
     points: { type: Number, default: 0 }

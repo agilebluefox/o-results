@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const schema = new Schema({
+    active: { type: Boolean, default: true },
     year: { type: Number, required: true },
     semester: { type: String, required: true },
     prefix: { type: String, required: true },

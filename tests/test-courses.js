@@ -44,7 +44,7 @@ describe('Course collection: ', () => {
 
     // Confirm the number of documents is correct
     it('Contains three documents', (done) => {
-        Course.find({}, (error, courses) => {
+        Course.find({ active: true }, (error, courses) => {
             if (error) console.log(error);
             expect(courses.length).to.equal(3);
             return done();

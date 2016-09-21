@@ -27,7 +27,7 @@ describe('Control collection: ', () => {
 
     // Confirm all the documents are loaded into the collection
     it('Contains 21 documents', (done) => {
-        Control.find({}, (error, docs) => {
+        Control.find({ active: true }, (error, docs) => {
             if (error) console.log(error);
             expect(docs.length).to.equal(21);
             return done();

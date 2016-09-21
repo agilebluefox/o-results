@@ -10,7 +10,6 @@ const db = require('./models/db'); // eslint-disable-line
 
 // Prepare routes
 const routes = require('./routes/index');
-const users = require('./routes/users');
 const classes = require('./routes/classes');
 const cards = require('./routes/cards');
 const controls = require('./routes/controls');
@@ -62,7 +61,6 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
-app.use('/users', users);
 app.use('/classes', classes);
 app.use('/cards', cards);
 app.use('/controls', controls);

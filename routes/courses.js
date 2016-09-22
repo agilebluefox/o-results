@@ -15,7 +15,7 @@ const Course = require('../models/courses');
 // route for / is left unchanged
 router.route('/')
     //GET all courses
-    .get((req, res, next) => {
+    .get((req, res) => {
         //retrieve all courses from Mongo
         Course.find({}, (err, courses) => {
             if (err) {
@@ -105,21 +105,14 @@ router.route('/')
             type,
             inorder,
             controls
-        }, { new: true }, callback) {
-            if (callback) {
-                callback = this.$wrapCallback(callback);
-            }
-            if (arguments.length === 1) {
-                if (typeof id === 'function') {
-                    var msg = 'Model.findByIdAndUpdate(): First argument must not be a function.'
-                        + '  ' + this.modelName + '.findByIdAndUpdate(id, callback)'
-                        + '  ' + this.modelName + '.findByIdAndUpdate(id)'
-                        + '  ' + this.modelName + '.findByIdAndUpdate()';
-                    throw new TypeError(msg);
+        }, { new: true }, (error, course) => {
+            if (error) {
+                    return res.status(500).json({
+                        message: 'Could not update course'
+                    });
                 }
-                return this.findOneAndUpdate({ _id: id }, undefined);
-            }
-        };
+                return res.status(201).json(course);
+        });
     });
 
 module.exports = router;

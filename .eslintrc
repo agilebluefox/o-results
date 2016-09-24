@@ -1,12 +1,19 @@
 {
-    "extends": "rallycoding",
+    "extends": [
+        "eslint:recommended"
+    ],
     "plugins": [
-        "import"
+        "import",
+        "es6-recommended"
     ],
     "env": {
         "mocha": true,
         "es6": true,
         "node": true,
         "mongo": true
+    },
+    "compilerOptions": {
+         "target": "ES6",
+         "module": "commonjs"
     }
 }

@@ -1,6 +1,7 @@
 'use strict()';
 
-const expect = require('./setup-tests');
+const expect = require('./test-server');
+const logger = require('../libs/logger');
 
 // Require models
 const Control = require('../models/controls');
@@ -9,7 +10,7 @@ const data = require('./data/test-controls.json');
 // Insert test data to Control collection
 function addControls(done) {
     Control.create(data, (error, controls) => {
-        if (error || !controls) console.log(error);
+        if (error || !controls) logger.error(error);
         return done();
     });
 }
@@ -28,7 +29,7 @@ describe('Control collection: ', () => {
     // Confirm all the documents are loaded into the collection
     it('Contains 21 documents', (done) => {
         Control.find({ active: true }, (error, docs) => {
-            if (error) console.log(error);
+            if (error) logger.error(error);
             expect(docs.length).to.equal(21);
             return done();
         });
@@ -37,7 +38,7 @@ describe('Control collection: ', () => {
     // Confirm the type of the control number - string
     it('Stores the control number as a string', (done) => {
         Control.findOne({}, (error, doc) => {
-            if (error) console.log(error);
+            if (error) logger.error(error);
             expect(doc.number).to.be.a('string');
             return done();
         });
@@ -46,7 +47,7 @@ describe('Control collection: ', () => {
     // Confirm the type contains values for the special controls
     it('Stores the type of control', (done) => {
         Control.findOne({ number: '1' }, (error, doc) => {
-            if (error) console.log(error);
+            if (error) logger.error(error);
             expect(doc.type).to.equal('station');
             return done();
         });

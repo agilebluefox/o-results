@@ -1,6 +1,7 @@
 'use strict()';
 
-const expect = require('./setup-tests');
+const expect = require('./test-server');
+const logger = require('../libs/logger');
 
 // Require models
 const Card = require('../models/cards');
@@ -12,7 +13,7 @@ function addCards(done) {
         Card.create({
             number: card.number
         }, (error, entry) => {
-            if (error || !entry) console.log(error);
+            if (error || !entry) logger.error(error);
         });
     });
     return done();
@@ -26,7 +27,7 @@ describe('Card collection: ', () => {
 
     it('contains four documents', (done) => {
         Card.find({ active: true }, (error, docs) => {
-            if (error) console.log(error);
+            if (error) logger.error(error);
             expect(docs.length).to.equal(4);
             return done();
         });
@@ -34,7 +35,7 @@ describe('Card collection: ', () => {
 
     it('stores the card number as a string', (done) => {
         Card.findOne({}, (error, doc) => {
-            if (error) console.log(error);
+            if (error) logger.error(error);
             expect(doc.number).to.be.a('string');
             return done();
         });
@@ -42,7 +43,7 @@ describe('Card collection: ', () => {
 
     it('stores a seven-digit value as the card number', (done) => {
         Card.findOne({}, (error, doc) => {
-            if (error) console.log(error);
+            if (error) logger.error(error);
             expect(doc.number).to.match(/[0-9]{7}/);
             return done();
         });

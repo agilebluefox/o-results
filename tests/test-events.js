@@ -1,6 +1,7 @@
 'use strict()';
 
-const expect = require('./setup-tests');
+const expect = require('./test-server');
+const logger = require('../libs/logger');
 
 // Require models
 const Class = require('../models/classes');
@@ -36,10 +37,10 @@ describe('Event collection: ', () => {
 
     before('Get the class and course arrays', (done) => {
         Class.find({ section: '196' }, (error, entry) => {
-            if (error) console.log(error);
+            if (error) logger.error(error);
             classes = entry;
             Course.find({ location: 'Umstead Park' }, (err, cls) => {
-                if (err) console.log(err);
+                if (err) logger.error(err);
                 courses = cls;
                 return done();
             });
@@ -53,7 +54,7 @@ describe('Event collection: ', () => {
 
     it('Has eight documents', (done) => {
         Event.find({ active: true }, (error, events) => {
-            if (error) console.log(error);
+            if (error) logger.error(error);
             expect(events.length).to.equal(8);
             return done();
         });

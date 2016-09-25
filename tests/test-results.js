@@ -1,6 +1,7 @@
 'use strict()';
 
-const expect = require('./setup-tests');
+const expect = require('./test-server');
+const logger = require('../libs/logger');
 
 // Require models
 const Card = require('../models/cards');
@@ -77,7 +78,7 @@ describe('Result collection: ', () => {
     // Get an event document
     before('Get the Event', (done) => {
         Event.findOne({ name: 'Umstead Park Event', date: '2016-02-27' }, (error, entry) => {
-            if (error) console.log(error);
+            if (error) logger.error(error);
             event = entry;
             return done();
         });
@@ -86,7 +87,7 @@ describe('Result collection: ', () => {
     // Get an array of the courses at the selected event
     before('Get the Courses used in the event', (done) => {
         Course.find({ location: 'Umstead Park' }, (error, entries) => {
-            if (error) console.log(error);
+            if (error) logger.error(error);
             courses = entries;
             return done();
         });
@@ -95,7 +96,7 @@ describe('Result collection: ', () => {
     // Get an array of student documents
     before('Get the students in the event', (done) => {
         Student.find({}, (error, entries) => {
-            if (error) console.log(error);
+            if (error) logger.error(error);
             students = entries;
             return done();
         });
@@ -104,7 +105,7 @@ describe('Result collection: ', () => {
     // Get an array of card documents
     before('Get the card numbers', (done) => {
         Card.find({}, (error, entries) => {
-            if (error) console.log(error);
+            if (error) logger.error(error);
             cards = entries;
             return done();
         });
@@ -118,7 +119,7 @@ describe('Result collection: ', () => {
     // Confirm the number of documents is correct
     it('Contains 42 documents', (done) => {
         Result.find({ active: true }, (error, results) => {
-            if (error) console.log(error);
+            if (error) logger.error(error);
             expect(results.length).to.equal(42);
             return done();
         });

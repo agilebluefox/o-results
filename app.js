@@ -6,7 +6,7 @@ const path = require('path');
 // const expressWinston = require('express-winston');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-const db = require('./models/db'); // eslint-disable-line
+const db = require('./bin/db'); // eslint-disable-line
 
 // Prepare routes
 const routes = require('./routes/index');
@@ -21,7 +21,7 @@ const students = require('./routes/students');
 // Load the app
 const app = express();
 
-const logger = require('./logger');
+const logger = require('./libs/logger');
 
 logger.info('Hello world');
 logger.warn('Warning message');

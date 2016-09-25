@@ -2,7 +2,7 @@
 
 const express = require('express');
 const bodyParser = require('body-parser'); //parses information from POST
-const logger = require('../logger');
+const logger = require('../libs/logger');
 
 const router = express.Router();
 
@@ -16,9 +16,9 @@ const Card = require('../models/cards');
 // route for / is left unchanged
 router.route('/')
     //GET all cards
-    .get((req, res, next) => {
+    .get((req, res) => {
         //retrieve all cards from Mongo
-        Card.find({}, (err, cards) => {
+        Card.find({ active: true }, (err, docs) => {
             if (err) {
                 logger.error(err);
             } else {
@@ -31,12 +31,12 @@ router.route('/')
                     html: () => {
                         res.render('cards/index', {
                             title: 'All my cards',
-                            cards
+                            docs
                         });
                     },
                     //JSON response will show all cards in JSON format
                     json: () => {
-                        res.json(cards);
+                        res.json(docs);
                     }
                 });
             }
@@ -50,13 +50,13 @@ router.route('/')
         //call the create function for our database
         Card.create({
             number
-        }, (err, card) => {
+        }, (err, doc) => {
             if (err) {
                 res.send('There was a problem adding the card to the database.');
                 logger.error('The card could not be added to the database');
             } else {
                 //Card has been created
-                logger.info(`POST creating new class: ${card}`);
+                logger.info(`POST creating new class: ${doc}`);
                 res.format({
                     // HTML response will set the location and redirect back
                     // to the home page. You could also create a 'success'
@@ -70,10 +70,40 @@ router.route('/')
                     },
                     // JSON response will show the newly created class
                     json: () => {
-                        res.json(card);
+                        res.json(doc);
                     }
                 });
             }
+        });
+    })
+    .put((req, res) => {
+        const id = req.body._id;
+        const active = req.body.active;
+        const number = req.body.number;
+        // Update the object
+        Card.findByAndUpdate(id, {
+            active,
+            number
+        }, { new: true }, (error, doc) => {
+            if (error) {
+                    return res.status(500).json({
+                        message: 'Could not update card'
+                    });
+                }
+                return res.status(201).json(doc);
+        });
+    })
+    .delete((req, res) => {
+        const id = req.body._id;
+        Card.findByIdAndUpdate(id, {
+            active: false
+        }, { new: true }, (error, doc) => {
+            if (error) {
+                    return res.status(500).json({
+                        message: 'Could not delete the card'
+                    });
+                }
+                return res.status(201).json(doc);
         });
     });
 

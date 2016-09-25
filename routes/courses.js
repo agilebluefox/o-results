@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser'); //parses information from POST
-const logger = require('../logger');
+const logger = require('../libs/logger');
 const createCodename = require('../libs/codename');
 
 const router = express.Router();
@@ -17,7 +17,7 @@ router.route('/')
     //GET all courses
     .get((req, res) => {
         //retrieve all courses from Mongo
-        Course.find({}, (err, courses) => {
+        Course.find({ active: true }, (err, courses) => {
             if (err) {
                 logger.error(err);
             } else {
@@ -89,6 +89,7 @@ router.route('/')
     })
     .put((req, res) => {
         const id = req.body.id;
+        const active = req.body.active;
         const location = req.body.location;
         const name = req.body.name;
         const mapdate = req.body.mapdate;
@@ -98,6 +99,7 @@ router.route('/')
         const controls = req.body.controls;
         // Make changes to the property and send the entire object
         Course.findByIdAndUpdate(id, {
+            active,
             location,
             mapdate,
             name,
@@ -105,13 +107,13 @@ router.route('/')
             type,
             inorder,
             controls
-        }, { new: true }, (error, course) => {
+        }, { new: true }, (error, doc) => {
             if (error) {
                     return res.status(500).json({
                         message: 'Could not update course'
                     });
                 }
-                return res.status(201).json(course);
+                return res.status(201).json(doc);
         });
     });
 

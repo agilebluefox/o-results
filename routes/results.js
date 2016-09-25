@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser'); //parses information from POST
-const logger = require('../logger');
+const logger = require('../libs/logger');
 
 const router = express.Router();
 
@@ -14,9 +14,9 @@ const Result = require('../models/results');
 // route for / is left unchanged
 router.route('/')
     //GET all results
-    .get((req, res, next) => {
+    .get((req, res) => {
         //retrieve all results from Mongo
-        Result.find({}, (err, results) => {
+        Result.find({ active: true }, (err, docs) => {
             if (err) {
                 logger.error(err);
             } else {
@@ -29,12 +29,12 @@ router.route('/')
                     html: () => {
                         res.render('results/index', {
                             title: 'All my results',
-                            results
+                            docs
                         });
                     },
                     //JSON response will show all results in JSON format
                     json: () => {
-                        res.json(results);
+                        res.json(docs);
                     }
                 });
             }
@@ -44,6 +44,7 @@ router.route('/')
         // TODO: Validate data in the request
         // Get values from POST request. These can be done through forms or
         // REST calls. These rely on the 'name'' attributes for forms
+        const active = req.body.active;
         const event = req.body.event;
         const course = req.body.course;
         const card = req.body.card;
@@ -52,19 +53,20 @@ router.route('/')
         const time = req.body.time;
         //call the create function for our database
         Result.create({
+            active,
             event,
             course,
             card,
             student,
             cn,
             time
-        }, (err, result) => {
+        }, (err, doc) => {
             if (err) {
                 res.send('There was a problem adding the result to the database.');
                 logger.error('The result could not be added to the database');
             } else {
                 //result has been created
-                logger.info(`POST creating new class: ${result}`);
+                logger.info(`POST creating new class: ${doc}`);
                 res.format({
                     // HTML response will set the location and redirect back
                     // to the home page. You could also create a 'success'
@@ -78,12 +80,51 @@ router.route('/')
                     },
                     // JSON response will show the newly created class
                     json: () => {
-                        res.json(result);
+                        res.json(doc);
                     }
                 });
             }
         });
+    })
+    .put((req, res) => {
+        const id = req.body._id;
+        const active = req.body.active;
+        const event = req.body.event;
+        const course = req.body.course;
+        const card = req.body.card;
+        const student = req.body.student;
+        const cn = req.body.cn;
+        const time = req.body.time;
+        // Update the document
+        Result.findByIdAndUpdate(id, {
+            active,
+            event,
+            course,
+            card,
+            student,
+            cn,
+            time
+        }, { new: true }, (error, doc) => {
+            if (error) {
+                    return res.status(500).json({
+                        message: 'Could not update results'
+                    });
+                }
+                return res.status(201).json(doc);
+        });
+    })
+    .delete((req, res) => {
+        const id = req.body._id;
+        Result.findByIdAndUpdate(id, {
+            active: false
+        }, { new: true }, (error, doc) => {
+            if (error) {
+                    return res.status(500).json({
+                        message: 'Could not delete the result'
+                    });
+                }
+                return res.status(201).json(doc);
+        });
     });
-
 
 module.exports = router;

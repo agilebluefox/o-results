@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser'); //parses information from POST
-const logger = require('../logger');
+const logger = require('../libs/logger');
 
 const router = express.Router();
 
@@ -14,9 +14,9 @@ const Event = require('../models/events');
 // route for / is left unchanged
 router.route('/')
     //GET all events
-    .get((req, res, next) => {
+    .get((req, res) => {
         //retrieve all events from Mongo
-        Event.find({}, (err, events) => {
+        Event.find({ active: true }, (err, docs) => {
             if (err) {
                 logger.error(err);
             } else {
@@ -29,12 +29,12 @@ router.route('/')
                     html: () => {
                         res.render('events/index', {
                             title: 'All my events',
-                            events
+                            docs
                         });
                     },
                     //JSON response will show all events in JSON format
                     json: () => {
-                        res.json(events);
+                        res.json(docs);
                     }
                 });
             }
@@ -44,6 +44,7 @@ router.route('/')
         // TODO: Validate data in the request
         // Get values from POST request. These can be done through forms or
         // REST calls. These rely on the 'name'' attributes for forms
+        const active = req.body.active;
         const location = req.body.location;
         const name = req.body.name;
         const date = req.body.date;
@@ -51,17 +52,18 @@ router.route('/')
         const classes = req.body.classes;
         //call the create function for our database
         Event.create({
+            active,
             location,
             name,
             date,
             courses,
             classes
-        }, (err, event) => {
+        }, (err, doc) => {
             if (err) {
                 res.send('There was a problem adding the information to the database.');
             } else {
                 //event has been created
-                logger.info(`POST creating new class: ${event}`);
+                logger.info(`POST creating new class: ${doc}`);
                 res.format({
                     // HTML response will set the location and redirect back
                     // to the home page. You could also create a 'success'
@@ -75,10 +77,23 @@ router.route('/')
                     },
                     // JSON response will show the newly created class
                     json: () => {
-                        res.json(event);
+                        res.json(doc);
                     }
                 });
             }
+        });
+    })
+    .delete((req, res) => {
+        const id = req.body._id;
+        Event.findByIdAndUpdate(id, {
+            active: false
+        }, { new: true }, (error, doc) => {
+            if (error) {
+                    return res.status(500).json({
+                        message: 'Could not delete the event'
+                    });
+                }
+                return res.status(201).json(doc);
         });
     });
 

@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser'); //parses information from POST
-const logger = require('../logger');
+const logger = require('../libs/logger');
 
 const router = express.Router();
 
@@ -14,9 +14,9 @@ const Student = require('../models/students');
 // route for / is left unchanged
 router.route('/')
     //GET all students
-    .get((req, res, next) => {
+    .get((req, res) => {
         //retrieve all students from Mongo
-        Student.find({}, (err, students) => {
+        Student.find({ active: true }, (err, docs) => {
             if (err) {
                 logger.error(err);
             } else {
@@ -29,12 +29,12 @@ router.route('/')
                     html: () => {
                         res.render('students/index', {
                             title: 'All my students',
-                            students
+                            docs
                         });
                     },
                     //JSON response will show all students in JSON format
                     json: () => {
-                        res.json(students);
+                        res.json(docs);
                     }
                 });
             }
@@ -44,6 +44,7 @@ router.route('/')
         // TODO: Validate data in the request
         // Get values from POST request. These can be done through forms or
         // REST calls. These rely on the 'name'' attributes for forms
+        const active = req.body.active;
         const unityid = req.body.unityid;
         const email = req.body.email;
         const firstname = req.body.firstname;
@@ -52,19 +53,20 @@ router.route('/')
         const cls = req.body.class;
         //call the create function for our database
         Student.create({
+            active,
             unityid,
             email,
             firstname,
             lastname,
             sex,
             class: cls
-        }, (err, student) => {
+        }, (err, doc) => {
             if (err) {
                 res.send('There was a problem adding the student to the database.');
                 logger.error('The student could not be added to the database');
             } else {
                 //student has been created
-                logger.info(`POST creating new class: ${student}`);
+                logger.info(`POST creating new class: ${doc}`);
                 res.format({
                     // HTML response will set the location and redirect back
                     // to the home page. You could also create a 'success'
@@ -78,10 +80,50 @@ router.route('/')
                     },
                     // JSON response will show the newly created class
                     json: () => {
-                        res.json(student);
+                        res.json(doc);
                     }
                 });
             }
+        });
+    })
+    .put((req, res) => {
+        const id = req.body._id;
+        const active = req.body.active;
+        const unityid = req.body.unityid;
+        const email = req.body.email;
+        const firstname = req.body.firstname;
+        const lastname = req.body.lastname;
+        const sex = req.body.sex;
+        const cls = req.body.class;
+        // Update the document
+        Student.findByIdAndUpdate(id, {
+            active,
+            unityid,
+            email,
+            firstname,
+            lastname,
+            sex,
+            cls
+        }, { new: true }, (error, doc) => {
+            if (error) {
+                    return res.status(500).json({
+                        message: 'Could not update student'
+                    });
+                }
+                return res.status(201).json(doc);
+        });
+    })
+    .delete((req, res) => {
+        const id = req.body._id;
+        Student.findByIdAndUpdate(id, {
+            active: false
+        }, { new: true }, (error, doc) => {
+            if (error) {
+                    return res.status(500).json({
+                        message: 'Could not delete the student'
+                    });
+                }
+                return res.status(201).json(doc);
         });
     });
 

@@ -2,7 +2,7 @@
 
 const express = require('express');
 const bodyParser = require('body-parser'); //parses information from POST
-const logger = require('../logger');
+const logger = require('../libs/logger');
 
 const router = express.Router();
 
@@ -15,9 +15,9 @@ const Class = require('../models/classes');
 // route for / is left unchanged
 router.route('/')
     //GET all classes
-    .get((req, res, next) => {
+    .get((req, res) => {
         //retrieve all classes from Mongo
-        Class.find({}, (err, classes) => {
+        Class.find({ active: true }, (err, classes) => {
             if (err) {
                 logger.error(err);
             } else {
@@ -46,6 +46,7 @@ router.route('/')
         // TODO: Validate data in the request
         // Get values from POST request. These can be done through forms or
         // REST calls. These rely on the 'name'' attributes for forms
+        const active = req.body.active;
         const year = req.body.year;
         const semester = req.body.semester;
         const prefix = req.body.prefix;
@@ -54,19 +55,20 @@ router.route('/')
         const section = req.body.section;
         //call the create function for our database
         Class.create({
+            active,
             year,
             semester,
             prefix,
             number,
             name,
             section
-        }, (err, cls) => {
+        }, (err, doc) => {
             if (err) {
                 res.send('There was a problem adding the class to the database.');
                 logger.error('The class could not be added to the database');
             } else {
                 //Class has been created
-                console.log(`POST creating new class: ${cls}`);
+                logger.error(`POST creating new class: ${doc}`);
                 res.format({
                     // HTML response will set the location and redirect back
                     // to the home page. You could also create a 'success'
@@ -80,10 +82,50 @@ router.route('/')
                     },
                     // JSON response will show the newly created class
                     json: () => {
-                        res.json(cls);
+                        res.json(doc);
                     }
                 });
             }
+        });
+    })
+    .put((req, res) => {
+        const id = req.body._id;
+        const active = req.body.active;
+        const year = req.body.year;
+        const semester = req.body.semester;
+        const prefix = req.body.prefix;
+        const number = req.body.number;
+        const name = req.body.name;
+        const section = req.body.section;
+        // Update the modified object
+        Class.findByIdAndUpdate(id, {
+            active,
+            year,
+            semester,
+            prefix,
+            number,
+            name,
+            section
+        }, { new: true }, (error, doc) => {
+            if (error) {
+                return res.status(500).json({
+                    message: 'Could not update the class document'
+                });
+            }
+            return res.status(201).json(doc);
+        });
+    })
+    .delete((req, res) => {
+        const id = req.body._id;
+        Class.findByIdAndUpdate(id, {
+            active: false
+        }, { new: true }, (error, doc) => {
+            if (error) {
+                    return res.status(500).json({
+                        message: 'Could not delete the class'
+                    });
+                }
+                return res.status(201).json(doc);
         });
     });
 

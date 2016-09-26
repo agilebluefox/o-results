@@ -1,10 +1,14 @@
 const express = require('express');
-const bodyParser = require('body-parser'); //parses information from POST
 const logger = require('../libs/logger');
+const util = require('util');
+const expressValidator = require('express-validator');
+const bodyParser = require('body-parser');
 
 const router = express.Router();
-
-router.use(bodyParser.urlencoded({ extended: true }));
+router.use(bodyParser.urlencoded({
+    extended: true
+}));
+router.use(expressValidator());
 
 const Event = require('../models/events');
 
@@ -16,34 +20,85 @@ router.route('/')
     //GET all events
     .get((req, res) => {
         //retrieve all events from Mongo
-        Event.find({ active: true }, (err, docs) => {
-            if (err) {
-                logger.error(err);
-            } else {
-                // respond to both HTML and JSON. JSON responses require
-                // 'Accept: application/json;' in the Request Header
-                res.format({
-                    // HTML response will render the index.pug file in the
-                    // views/events folder. We are also setting 'events''
-                    // to be an accessible variable in our pug view
-                    html: () => {
-                        res.render('events/index', {
-                            title: 'All my events',
-                            docs
-                        });
-                    },
-                    //JSON response will show all events in JSON format
-                    json: () => {
-                        res.json(docs);
-                    }
-                });
-            }
-        });
+        Event.find({
+                active: true
+            })
+            .populate('courses')
+            .populate('classes')
+            .exec((err, docs) => {
+                if (err) {
+                    logger.error(err);
+                } else {
+                    // respond to both HTML and JSON. JSON responses require
+                    // 'Accept: application/json;' in the Request Header
+                    res.format({
+                        // HTML response will render the index.pug file in the
+                        // views/events folder. We are also setting 'events''
+                        // to be an accessible variable in our pug view
+                        html: () => {
+                            res.render('events/index', {
+                                title: 'All my events',
+                                docs
+                            });
+                        },
+                        //JSON response will show all events in JSON format
+                        json: () => {
+                            res.json(docs);
+                        }
+                    });
+                }
+            });
     })
     .post((req, res) => {
         // TODO: Validate data in the request
-        // Get values from POST request. These can be done through forms or
-        // REST calls. These rely on the 'name'' attributes for forms
+        req.checkBody({
+            'active': {
+                notEmpty: true,
+                isBoolean: {
+                    errorMessage: 'Invalid event active property'
+                },
+                errorMessage: 'Active property on event not found'
+            },
+            'location': {
+                notEmpty: true,
+                isAscii: {
+                    errorMessage: 'Event location not a string'
+                },
+                errorMessage: 'Location property on event not found'
+            },
+            'name': {
+                notEmpty: true,
+                isAscii: {
+                    errorMessage: 'Event name not a string'
+                },
+                errorMessage: 'Name property on event not found'
+            },
+            'date': {
+                notEmpty: true,
+                isDate: {
+                    errorMessage: 'Event date not a valid date'
+                },
+                errorMessage: 'Date property on event not found'
+            },
+            'courses': {
+                optional: true,
+                isMongoId: {
+                    errorMessage: 'Event courses must be ObjectIds'
+                }
+            },
+            'classes': {
+                optional: true,
+                isMongoId: {
+                    errorMessage: 'Event classes must be ObjectIds'
+                }
+            }
+        });
+        let errors = req.validationErrors();
+        if (errors) {
+            res.status(400).send('There have been validation errors: ' + util.inspect(errors));
+            return;
+        }
+        // Get values from POST request.
         const active = req.body.active;
         const location = req.body.location;
         const name = req.body.name;
@@ -59,6 +114,7 @@ router.route('/')
             courses,
             classes
         }, (err, doc) => {
+
             if (err) {
                 res.send('There was a problem adding the information to the database.');
             } else {
@@ -87,13 +143,15 @@ router.route('/')
         const id = req.body._id;
         Event.findByIdAndUpdate(id, {
             active: false
-        }, { new: true }, (error, doc) => {
+        }, {
+            new: true
+        }, (error, doc) => {
             if (error) {
-                    return res.status(500).json({
-                        message: 'Could not delete the event'
-                    });
-                }
-                return res.status(201).json(doc);
+                return res.status(500).json({
+                    message: 'Could not delete the event'
+                });
+            }
+            return res.status(201).json(doc);
         });
     });
 

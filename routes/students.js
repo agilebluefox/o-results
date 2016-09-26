@@ -16,7 +16,9 @@ router.route('/')
     //GET all students
     .get((req, res) => {
         //retrieve all students from Mongo
-        Student.find({ active: true }, (err, docs) => {
+        Student.find({ active: true })
+        .populate('class')
+        .exec((err, docs) => {
             if (err) {
                 logger.error(err);
             } else {

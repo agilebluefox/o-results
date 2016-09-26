@@ -16,7 +16,11 @@ router.route('/')
     //GET all results
     .get((req, res) => {
         //retrieve all results from Mongo
-        Result.find({ active: true }, (err, docs) => {
+        Result.find({ active: true })
+        .populate('event')
+        .populate('course')
+        .populate('student')
+        .exec((err, docs) => {
             if (err) {
                 logger.error(err);
             } else {

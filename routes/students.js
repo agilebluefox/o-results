@@ -59,9 +59,11 @@ router.route('/')
             class: cls
         };
 
+        // Validation rules for the class properties
         const checkClass = nodeValidator.isObject()
             .withRequired('_id', customValidator.isMongoId());
 
+        // Validation rules for the student document
         const checkStudent = nodeValidator.isObject()
             .withOptional('active', nodeValidator.isBoolean())
             .withRequired('unityid', nodeValidator.isString({
@@ -133,7 +135,7 @@ router.route('/')
                                     // Student has been created
                                     logger.info(`POST creating new student: ${doc}`);
                                     res.format({
-                                        // JSON response will show the newly created class
+                                        // JSON response will show the newly created document
                                         json: () => {
                                             res.json(doc);
                                         }
@@ -189,9 +191,11 @@ router.route('/')
                 class: cls
             };
 
+            // Validation rules for the class property
             const checkClass = nodeValidator.isObject()
                 .withRequired('_id', customValidator.isMongoId());
 
+            // Validation rules for the student document
             const checkStudent = nodeValidator.isObject()
                 .withRequired('id', customValidator.isMongoId())
                 .withOptional('active', nodeValidator.isBoolean())

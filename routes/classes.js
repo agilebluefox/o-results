@@ -2,60 +2,31 @@
 
 const express = require('express');
 const util = require('util');
-// const expressValidator = require('express-validator');
 const bodyParser = require('body-parser'); //parses information from POST
-const validateClassDoc = require('../libs/custom-validators');
-const logger = require('../libs/logger');
-const Class = require('../models/classes');
+const nodeValidator = require('node-validator'); // Provides standard validation functions
+const customValidator = require('../libs/custom-validators'); // additional validators 
+const logger = require('../libs/logger'); // Provides logging functions
+const myLibs = require('../libs/helpers'); // Common functions for app
+const Class = require('../models/classes'); // Mongoose model
 
 const router = express.Router();
 router.use(bodyParser.urlencoded({
     extended: true
 }));
-// router.use(expressValidator());
 
-function checkDuplicateClass(entry) {
-    logger.debug(`Checking for duplicate classes: ${util.inspect(entry)}`);
-    Class.count({
-        year: entry.year,
-        semester: entry.semester,
-        prefix: entry.prefix,
-        number: entry.number,
-        name: entry.name,
-        section: entry.section
-    }, (err, count) => {
-        logger.debug(`The number of duplicate classes is: ${count}`);
-        if (count > 0) {
-            return true;
-        }
-    })
-}
-
-// build the REST operations at the base for classes
-// this will be accessible from http://127.0.0.1:3000/classes if the default
-// route for / is left unchanged
+// define the route
 router.route('/')
     //GET all classes
     .get((req, res) => {
-        //retrieve all classes from Mongo
+        //retrieve all classes from Mongo that are active
         Class.find({
             active: true
         }, (err, classes) => {
             if (err) {
                 logger.error(err);
             } else {
-                // respond to both HTML and JSON. JSON responses require
-                // 'Accept: application/json;' in the Request Header
+                // JSON responses require 'Accept: application/json;' in the Request Header
                 res.format({
-                    // HTML response will render the index.pug file in the
-                    // views/classes folder. We are also setting 'classes''
-                    // to be an accessible variable in our pug view
-                    // html: () => {
-                    //     res.render('classes/index', {
-                    //         title: 'All my classes',
-                    //         classes
-                    //     });
-                    // },
                     //JSON response will show all classes in JSON format
                     json: () => {
                         logger.info(classes);
@@ -66,18 +37,18 @@ router.route('/')
         });
     })
     .post((req, res) => {
-        // Get values from POST request. These can be done through forms or
-        // REST calls. These rely on the 'name'' attributes for forms
-        const active = req.body.active || true;
-        const year = req.body.year || year;
-        const semester = req.body.semester || '';
-        const prefix = req.body.prefix || '';
-        const number = req.body.number || '';
-        const name = req.body.name || '';
-        const section = req.body.section || '';
+        // Get values from POST request and assign to variables
+        const active = req.body.active;
+        const year = req.body.year;
+        const semester = req.body.semester.toLowerCase();
+        const prefix = req.body.prefix.toLowerCase();
+        const number = req.body.number;
+        const name = req.body.name.toLowerCase();
+        const section = req.body.section;
 
-        // Add the expected properties to an object
-        let required = {
+        // The properties for the new object
+        let doc = {
+            active: active,
             year: year,
             semester: semester,
             prefix: prefix,
@@ -86,72 +57,133 @@ router.route('/')
             section: section
         };
 
-        let optional = {
-            active: active
-        }
+        const checkClass = nodeValidator.isObject()
+            .withOptional('active', nodeValidator.isBoolean())
+            .withRequired('year', nodeValidator.isInteger({
+                min: 2000
+            }))
+            .withRequired('semester', customValidator.isIn({
+                list: ['fall', 'spring', 'summer I', 'summer II']
+            }))
+            .withRequired('prefix', nodeValidator.isString({
+                regex: /(heso)/
+            }))
+            .withRequired('number', nodeValidator.isString({
+                regex: /(253)/
+            }))
+            .withRequired('name', nodeValidator.isString({
+                regex: /(orienteering)/
+            }))
+            .withRequired('section', nodeValidator.isString({
+                regex: /[0-9]{3}/
+            }));
 
-        logger.info(entry);
-
-        // Modify the entry to add an errors property including 
-        // any validation errors that exist
-        let entry = validateClassDoc(required, optional);
-
-        // Make sure the new document is not a duplicate of a current
-        // document in the collection
-        let duplicate = checkDuplicateClass(entry);
-        // logger.debug(`Are there duplicates? ${checkDuplicateClass(entry)}`);
-        if (entry.hasOwnProperty('errors') && entry.errors.length > 0) {
-            logger.debug(`The entry has errors: ${util.inspect(entry)}`);
-            return res.status(400).send('There have been validation errors: ' + util.inspect(entry.errors));
-        } else if (duplicate) {
-            logger.debug(`A duplicate class was found`);
-            return res.status(400).send('This class already exists: ' + res.json(entry));
-        } else {
-            //call the create function for our database
-            Class.create({
-                active,
-                year,
-                semester,
-                prefix,
-                number,
-                name,
-                section
-            }, (err, doc) => {
-                if (err) {
-                    logger.error('The class could not be added to the database');
-                    return res.send('There was a problem adding the class to the database.');
-                } else {
-                    //Class has been created
-                    logger.info(`POST creating new class: ${doc}`);
-                    res.format({
-                        json: () => {
-                            res.json(doc);
+        // Validate the input for the new document
+        new Promise((resolve, reject) => {
+                nodeValidator.run(checkClass, doc, (errorCount, errors) => {
+                    logger.info(`VALIDATION ERRORS - The number of errors is ${errorCount}`);
+                    if (errorCount === 0) {
+                        // If the input is valid, send the document without the error property
+                        resolve(doc);
+                    } else {
+                        // If the input is invalid, send the response with the errors
+                        logger.debug(`VALIDATION ERRORS - The errors found are: ${util.inspect(errors)}`);
+                        doc.errors = errors;
+                        reject(doc);
+                    }
+                });
+            })
+            // If the document has validation errors there's no need to check for duplicates
+            .catch((doc) => {
+                logger.info(doc);
+                res.status(400).send(`There have been validation errors: ${ util.inspect(doc) }`);
+            })
+            // If there are no validation errors, make sure the document will be unique
+            .then((doc) => {
+                // The validation promise was resolved, now use the validated
+                // document in a new promise that checks for duplicates
+                myLibs.checkForDuplicateDocs(doc, {
+                        year: doc.year,
+                        semester: doc.semester,
+                        prefix: doc.prefix,
+                        number: doc.number,
+                        name: doc.name,
+                        section: doc.section
+                    }, Class)
+                    // If the promise returns true, a duplicate class exists
+                    // The entry represents the return value for the second promise
+                    .then((entry) => {
+                        if (entry) {
+                            logger.info(`DUPLICATE - A duplicate class was found`);
+                            return res.status(400).send({
+                                message: 'This class already exists.',
+                                data: doc
+                            });
+                        } else {
+                            // Call the create function for our database
+                            Class.create({
+                                active,
+                                year,
+                                semester,
+                                prefix,
+                                number,
+                                name,
+                                section
+                            }, (err, doc) => {
+                                if (err) {
+                                    logger.error('The class could not be added to the database');
+                                    return res.send('There was a problem adding the class to the database.');
+                                } else {
+                                    //Class has been created
+                                    logger.info(`POST creating new class: ${doc}`);
+                                    res.format({
+                                        json: () => {
+                                            res.json(doc);
+                                        }
+                                    });
+                                }
+                            });
                         }
                     });
-                }
             });
-        }
     })
     .put((req, res) => {
+        // Use arrays to track passed and failed documents for final response
         let length = req.body.length;
-        let updated = [];
+        let passed = [];
         let failed = [];
+
+        // Helper function to handle the response when all of the 
+        // requested updates have been processed.
+        function checkIfDone() {
+            if (passed.length + failed.length === length) {
+                let all = {
+                    success: passed,
+                    fail: failed,
+                    errors: failed.length > 0
+                };
+                return res.status(201).json(all);
+            }
+            return;
+        }
+
+        // Iterate over the request to handle multiple updates
         req.body.forEach((entry) => {
-            logger.debug(entry);
-            // Prevent null or undefined properties 
-            const id = entry._id || '';
-            const active = entry.active || true;
-            const year = entry.year || '';
-            const semester = entry.semester || '';
-            const prefix = entry.prefix || '';
-            const number = entry.number || '';
-            const name = entry.name || '';
-            const section = entry.section || '';
+            logger.debug(`The document in the loop is: ${util.inspect(entry)}`);
 
-            // Add the expected properties to an object
+            // Store the properties in variables
+            const id = entry._id;
+            const active = entry.active;
+            const year = entry.year;
+            const semester = entry.semester.toLowerCase();
+            const prefix = entry.prefix.toLowerCase();
+            const number = entry.number;
+            const name = entry.name.toLowerCase();
+            const section = entry.section;
 
-            let required = {
-                id: id,
+            // The properties for the new object
+            let doc = {
+                active: active,
                 year: year,
                 semester: semester,
                 prefix: prefix,
@@ -160,69 +192,100 @@ router.route('/')
                 section: section
             };
 
-            let optional = {
-                active: active,
-            };
+            const checkClass = nodeValidator.isObject()
+                .withOptional('active', nodeValidator.isBoolean())
+                .withRequired('year', nodeValidator.isInteger({
+                    min: 2000
+                }))
+                .withRequired('semester', customValidator.isIn({
+                    list: ['fall', 'spring', 'summer I', 'summer II']
+                }))
+                .withRequired('prefix', nodeValidator.isString({
+                    regex: /(heso)/
+                }))
+                .withRequired('number', nodeValidator.isString({
+                    regex: /(253)/
+                }))
+                .withRequired('name', nodeValidator.isString({
+                    regex: /(orienteering)/
+                }))
+                .withRequired('section', nodeValidator.isString({
+                    regex: /[0-9]{3}/
+                }));
 
-            // Modify the entry to add an errors property including 
-            // any validation errors that exist
-            entry = validateClassDoc(required, optional);
-            logger.info(entry);
-
-            // If the data does not validate, add the entry to the fail array
-            if (entry.hasOwnProperty('errors') && entry.errors.length > 0) {
-                failed.push(entry);
-                if (updated.length + failed.length === length) {
-                    let all = {
-                        success: updated,
-                        fail: failed
-                    };
-                    return res.status(201).json(all);
-                }
-                // If the data passes all validation checks...
-            } else {
-                // Update the modified object
-                Class.findByIdAndUpdate(id, {
-                    active,
-                    year,
-                    semester,
-                    prefix,
-                    number,
-                    name,
-                    section
-                }, {
-                    new: true
-                }, (error, doc) => {
-                    // If an error occurs while attempting the update 
-                    // add the document to the fail array
-                    if (error) {
-                        logger.error(error);
-                        failed.push(doc);
-                        // When all of the documents have been evaluated
-                        // respond with an object containing the list
-                        // of failures and successes
-                        if (updated.length + failed.length === length) {
-                            let all = {
-                                success: updated,
-                                fail: failed
-                            };
-                            return res.status(201).json(all);
-                        }
-                    }
-                    // Add the updated document to the success array
-                    updated.push(doc);
-                    // When all of the documents have been evaluated
-                    // respond with an object containing the list
-                    // of failures and successes
-                    if (updated.length + failed.length === length) {
-                        let all = {
-                            success: updated,
-                            fail: failed
-                        };
-                        return res.status(201).json(all);
+            // Validate the input for the new document
+            new Promise((resolve, reject) => {
+                nodeValidator.run(checkClass, doc, (errorCount, errors) => {
+                    logger.info(`VALIDATION ERRORS - The number of errors is ${errorCount}`);
+                    if (errorCount === 0) {
+                        // If the input is valid, send the document without the error property
+                        resolve(doc);
+                    } else {
+                        // If the input is invalid, send the response with the errors
+                        logger.debug(`VALIDATION ERRORS - The errors found are: ${util.inspect(errors)}`);
+                        doc.errors = errors;
+                        reject(doc);
                     }
                 });
-            }
+            })
+
+            // If there are no validation errors, make sure the document will be unique
+            .then((doc) => {
+                    // The validation promise was resolved, now use the validated
+                    // document in a new promise that checks for duplicates
+                    myLibs.checkForDuplicateDocs(doc, {
+                            year: doc.year,
+                            semester: doc.semester,
+                            prefix: doc.prefix,
+                            number: doc.number,
+                            name: doc.name,
+                            section: doc.section
+                        }, Class)
+                        // If the promise returns true, a duplicate class exists
+                        // The entry represents the return value for the second promise
+                        .then((entry) => {
+                            if (entry) {
+                                logger.info(`DUPLICATE - A duplicate class was found`);
+                                return res.status(400).send({
+                                    message: 'This class already exists.',
+                                    data: doc
+                                });
+                            } else {
+                                // Update the modified object
+                                Class.findByIdAndUpdate(id, {
+                                    active,
+                                    year,
+                                    semester,
+                                    prefix,
+                                    number,
+                                    name,
+                                    section
+                                }, {
+                                    new: true
+                                }, (error, doc) => {
+                                    // If an error occurs while attempting the update 
+                                    // add the document to the fail array
+                                    if (error) {
+                                        logger.error(error);
+                                        logger.info(`FAILED - The document was not updated.`);
+                                        logger.debug(`FAILED - The document failed to update: ${util.inspect(doc)}`);
+                                        failed.push(doc);
+                                        checkIfDone();
+                                    }
+                                    // Add the updated document to the success array
+                                    logger.info(`UPDATED - The document was updated.`);
+                                    logger.debug(`UPDATED - The document was updated: ${util.inspect(doc)}`);
+                                    passed.push(doc);
+                                    checkIfDone();
+                                });
+                            }
+                        });
+                })
+                // If the document has validation errors there's no need to check for duplicates
+                .catch((doc) => {
+                    logger.info(doc);
+                    res.status(400).send(`There have been validation errors: ${ util.inspect(doc) }`);
+                })
         });
     })
     .delete((req, res) => {

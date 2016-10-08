@@ -57,6 +57,7 @@ router.route('/')
             section: section
         };
 
+        // Validation rules for the class document
         const checkClass = nodeValidator.isObject()
             .withOptional('active', nodeValidator.isBoolean())
             .withRequired('year', nodeValidator.isInteger({

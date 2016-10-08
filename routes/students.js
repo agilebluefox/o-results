@@ -243,7 +243,7 @@ router.route('/')
                         if (entry) {
                             logger.info(`DUPLICATE - A duplicate student was found`);
                             doc.errors = [{
-                                message: "An identical student already exists in the collection."
+                                message: "An identical document already exists in the collection."
                             }];
                             logger.debug(`FAILED - The entry failed to update: ${util.inspect(doc)}`);
                             failed.push(doc);

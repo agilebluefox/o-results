@@ -64,7 +64,7 @@ router.route('/')
                 min: 2000
             }))
             .withRequired('semester', customValidator.isIn({
-                list: ['fall', 'spring', 'summer I', 'summer II']
+                list: ['fall', 'spring', 'summer 1', 'summer 2']
             }))
             .withRequired('prefix', nodeValidator.isString({
                 regex: /(heso)/
@@ -184,6 +184,7 @@ router.route('/')
 
             // The properties for the new object
             let doc = {
+                id: id,
                 active: active,
                 year: year,
                 semester: semester,
@@ -194,12 +195,13 @@ router.route('/')
             };
 
             const checkClass = nodeValidator.isObject()
+                .withRequired('id', customValidator.isMongoId())
                 .withOptional('active', nodeValidator.isBoolean())
                 .withRequired('year', nodeValidator.isInteger({
                     min: 2000
                 }))
                 .withRequired('semester', customValidator.isIn({
-                    list: ['fall', 'spring', 'summer I', 'summer II']
+                    list: ['fall', 'spring', 'summer 1', 'summer 2']
                 }))
                 .withRequired('prefix', nodeValidator.isString({
                     regex: /(heso)/
@@ -216,22 +218,21 @@ router.route('/')
 
             // Validate the input for the new document
             new Promise((resolve, reject) => {
-                nodeValidator.run(checkClass, doc, (errorCount, errors) => {
-                    logger.info(`VALIDATION ERRORS - The number of errors is ${errorCount}`);
-                    if (errorCount === 0) {
-                        // If the input is valid, send the document without the error property
-                        resolve(doc);
-                    } else {
-                        // If the input is invalid, send the response with the errors
-                        logger.debug(`VALIDATION ERRORS - The errors found are: ${util.inspect(errors)}`);
-                        doc.errors = errors;
-                        reject(doc);
-                    }
-                });
-            })
-
-            // If there are no validation errors, make sure the document will be unique
-            .then((doc) => {
+                    nodeValidator.run(checkClass, doc, (errorCount, errors) => {
+                        logger.info(`VALIDATION ERRORS - The number of errors is ${errorCount}`);
+                        if (errorCount === 0) {
+                            // If the input is valid, send the document without the error property
+                            resolve(doc);
+                        } else {
+                            // If the input is invalid, send the response with the errors
+                            logger.debug(`VALIDATION ERRORS - The errors found are: ${util.inspect(errors)}`);
+                            doc.errors = errors;
+                            reject(doc);
+                        }
+                    });
+                })
+                // If there are no validation errors, make sure the document will be unique
+                .then((doc) => {
                     // The validation promise was resolved, now use the validated
                     // document in a new promise that checks for duplicates
                     myLibs.checkForDuplicateDocs(doc, {
@@ -242,15 +243,17 @@ router.route('/')
                             name: doc.name,
                             section: doc.section
                         }, Class)
-                        // If the promise returns true, a duplicate class exists
+                        // If the promise returns true, a duplicate document exists
                         // The entry represents the return value for the second promise
                         .then((entry) => {
                             if (entry) {
-                                logger.info(`DUPLICATE - A duplicate class was found`);
-                                return res.status(400).send({
-                                    message: 'This class already exists.',
-                                    data: doc
-                                });
+                                logger.info(`DUPLICATE - A duplicate document was found`);
+                                doc.errors = [{
+                                    message: "An identical document already exists in the collection."
+                                }];
+                                logger.debug(`FAILED - The document failed to update: ${util.inspect(doc)}`);
+                                failed.push(doc);
+                                checkIfDone();
                             } else {
                                 // Update the modified object
                                 Class.findByIdAndUpdate(id, {
@@ -284,8 +287,9 @@ router.route('/')
                 })
                 // If the document has validation errors there's no need to check for duplicates
                 .catch((doc) => {
-                    logger.info(doc);
-                    res.status(400).send(`There have been validation errors: ${ util.inspect(doc) }`);
+                    logger.debug(`FAILED - The entry failed to update: ${util.inspect(doc)}`);
+                    failed.push(doc);
+                    checkIfDone();
                 })
         });
     })

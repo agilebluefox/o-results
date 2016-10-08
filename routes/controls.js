@@ -199,7 +199,7 @@ router.route('/')
                         if (entry) {
                             logger.info(`DUPLICATE - A duplicate control was found`);
                             doc.errors = [{
-                                message: "The updated control is not unique."
+                                message: "An identical document already exists in the collection."
                             }];
                             logger.debug(`FAILED - The entry failed to update: ${util.inspect(doc)}`);
                             failed.push(doc);

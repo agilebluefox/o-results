@@ -49,7 +49,7 @@ router.route('/')
 
         const checkCard = nodeValidator.isObject()
             .withRequired('number', nodeValidator.isString({
-                regex: /^[0-9]+$/
+                regex: /^[0-9]{1,7}$/
             }))
             .withOptional('active', nodeValidator.isBoolean());
 

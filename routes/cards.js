@@ -137,9 +137,9 @@ router.route('/')
             logger.debug(`The document in the loop is: ${util.inspect(entry)}`);
 
             // Store the properties in variables 
-            const id = req.body._id;
-            const active = req.body.active;
-            const number = req.body.number;
+            const id = entry._id;
+            const active = entry.active;
+            const number = entry.number;
 
             // The data needed for the new document
             let doc = {
@@ -151,7 +151,7 @@ router.route('/')
             const checkCard = nodeValidator.isObject()
                 .withRequired('id', customValidator.isMongoId())
                 .withRequired('number', nodeValidator.isString({
-                    regex: /^[0-9]+$/
+                    regex: /^[0-9]{1,7}$/
                 }))
                 .withOptional('active', nodeValidator.isBoolean());
 
@@ -174,41 +174,45 @@ router.route('/')
                     // The validation promise was resolved, now use the 
                     // validated document in a new promise that checks for duplicates
                     myLibs.checkForDuplicateDocs(doc, {
-                        number: doc.number
-                    }, Card).then((entry) => {
-                        if (entry) {
-                            logger.info(`DUPLICATE - A duplicate control was found`);
-                            doc.errors = [{
-                                message: "An identical document already exists in the collection."
-                            }];
-                            logger.debug(`FAILED - The entry failed to update: ${util.inspect(doc)}`);
-                            failed.push(doc);
-                            checkIfDone();
-                        } else {
-                            // Update the object
-                            Card.findByAndUpdate(id, {
-                                active,
-                                number
-                            }, {
-                                new: true
-                            }, (error, doc) => {
-                                // If an error occurs while attempting the update 
-                                // add the document to the fail array
-                                if (error) {
-                                    logger.error(error);
-                                    logger.info(`FAILED - The document was not updated.`);
-                                    logger.debug(`FAILED - The document failed to update: ${util.inspect(doc)}`);
-                                    failed.push(doc);
-                                    checkIfDone();
-                                }
-                                // Add the updated document to the success array
-                                logger.info(`UPDATED - The document was updated.`);
-                                logger.debug(`UPDATED - The document was updated: ${util.inspect(doc)}`);
-                                passed.push(doc);
+                            number: doc.number
+                        }, Card)
+                        // If the promise returns true, a duplicate document exists
+                        // The entry represents the return value for the second promise
+                        .then((entry) => {
+                            if (entry) {
+                                logger.info(`DUPLICATE - A duplicate control was found`);
+                                doc.errors = [{
+                                    message: "An identical document already exists in the collection."
+                                }];
+                                logger.debug(`FAILED - The entry failed to update: ${util.inspect(doc)}`);
+                                failed.push(doc);
                                 checkIfDone();
-                            });
-                        }
-                    });
+                            } else {
+                                logger.debug(`SUCCESS - There are no duplicates. Tryng to insert the document...`);
+                                // Update the object
+                                Card.findByIdAndUpdate(id, {
+                                    active,
+                                    number
+                                }, {
+                                    new: true
+                                }, (error, doc) => {
+                                    // If an error occurs while attempting the update 
+                                    // add the document to the fail array
+                                    if (error) {
+                                        logger.error(error);
+                                        logger.info(`FAILED - The document was not updated.`);
+                                        logger.debug(`FAILED - The document failed to update: ${util.inspect(doc)}`);
+                                        failed.push(doc);
+                                        checkIfDone();
+                                    }
+                                    // Add the updated document to the success array
+                                    logger.info(`UPDATED - The document was updated.`);
+                                    logger.debug(`UPDATED - The document was updated: ${util.inspect(doc)}`);
+                                    passed.push(doc);
+                                    checkIfDone();
+                                });
+                            }
+                        });
                 })
                 // If the initial promise is rejected, add the document to the failed array
                 .catch((doc) => {

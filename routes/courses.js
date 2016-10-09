@@ -3,8 +3,10 @@
 const express = require('express');
 const bodyParser = require('body-parser'); //parses information from POST
 const util = require('util');
-const validateCourseDoc = require('../libs/custom-validators');
-const logger = require('../libs/logger');
+const nodeValidator = require('node-validator'); // Provides standard validation functions
+const customValidator = require('../libs/custom-validators'); // additional validators 
+const logger = require('../libs/logger'); // Provides logging functions
+const myLibs = require('../libs/helpers'); // Common functions for app
 const createCodename = require('../libs/codename');
 const Course = require('../models/courses');
 
@@ -13,49 +15,19 @@ router.use(bodyParser.urlencoded({
     extended: true
 }));
 
-function checkDuplicateCourse(entry) {
-    logger.debug(`Checking for duplicate courses: ${util.inspect(entry)}`);
-    Course.count({
-        location: entry.location,
-        mapdate: entry.mapdate,
-        name: entry.name,
-        type: entry.type,
-        inorder: entry.inorder,
-        controls: entry.controls
-    }, (err, count) => {
-        logger.debug(`The number of duplicate courses is: ${count}`);
-        if (count > 0) {
-            return true;
-        }
-    })
-}
-
 // define the home page route
-// build the REST operations at the base for courses
-// this will be accessible from http://127.0.0.1:3000/courses if the default
-// route for / is left unchanged
 router.route('/')
-    //GET all courses
+    //GET all active documents
     .get((req, res) => {
-        //retrieve all courses from Mongo
+        //retrieve all courses from Mongo that are active
         Course.find({
             active: true
         }, (err, courses) => {
             if (err) {
                 logger.error(err);
             } else {
-                // respond to both HTML and JSON. JSON responses require
-                // 'Accept: application/json;' in the Request Header
+                // JSON responses require 'Accept: application/json;' in the Request Header
                 res.format({
-                    // HTML response will render the index.pug file in the
-                    // views/courses folder. We are also setting 'courses''
-                    // to be an accessible variable in our pug view
-                    // html: () => {
-                    //     res.render('courses/index', {
-                    //         title: 'All my courses',
-                    //         courses
-                    //     });
-                    // },
                     //JSON response will show all courses in JSON format
                     json: () => {
                         res.json(courses);
@@ -65,166 +37,290 @@ router.route('/')
         });
     })
     .post((req, res) => {
-        // Get values from POST request. These can be done through forms or
-        // REST calls. These rely on the 'name'' attributes for forms
-        const active = req.body.active || true;
-        const location = req.body.location || '';
-        const name = req.body.name || '';
-        const mapdate = req.body.mapdate || '';
-        const codename = createCodename(name, mapdate) || '';
-        const type = req.body.type || '';
-        const inorder = req.body.inorder || 'true';
-        const controls = req.body.controls || [];
+        // Get values from POST request and assign to variables
+        const active = req.body.active;
+        const location = req.body.location.toLowerCase();
+        const name = req.body.name.toLowerCase();
+        const mapdate = req.body.mapdate;
+        const codename = createCodename(name, mapdate).toLowerCase();
+        const type = req.body.type.toLowerCase();
+        const inorder = req.body.inorder;
+        const controls = req.body.controls;
 
-        let required = {
+        let doc = {
+            active: active,
             location: location,
             name: name,
             mapdate: mapdate,
             codename: codename,
             type: type,
-            inorder: inorder
+            inorder: inorder,
+            controls: controls
         };
 
-        let optional = {
-            active: active,
-            controls: controls
-        }
+        // Validation rules for controls property
+        const checkControl = nodeValidator.isObject()
+            .withRequired('number', nodeValidator.isString({
+                regex: /^[0-9]+$/
+            }))
+            .withRequired('type', customValidator.isIn({
+                list: ['station', 'control', 'clear', 'finish', 'start']
+            }))
+            .withRequired('points', nodeValidator.isInteger({
+                min: 0
+            }));
 
-        // Validate the input and add the errors property
-        let entry = validateCourseDoc(required, optional);
+        // Validation rules for the course document
+        const checkCourse = nodeValidator.isObject()
+            .withOptional('active', nodeValidator.isBoolean())
+            .withRequired('location', customValidator.isIn({
+                list: ['lake raleigh', 'lake johnson', 'schenck forest', 'umstead park']
+            }))
+            .withRequired('name', nodeValidator.isString({
+                regex: /^[a-z0-9 ]{1,50}$/
+            }))
+            .withRequired('mapdate', nodeValidator.isDate())
+            .withRequired('codename', nodeValidator.isString({
+                    // example: 'upnc2016109-2040''
+                    regex: /^[a-z]{1,6}[0-9]{1,8}-[0-9]{4}$/
+            }))
+            .withRequired('type', customValidator.isIn({
+                list: ['score', 'classic']
+            }))
+            .withRequired('inorder', nodeValidator.isBoolean())
+            .withOptional('controls', nodeValidator.isArray(checkControl, {
+                min: 1
+            }));
 
-        // Make sure the new document is not a duplicate of a current
-        // document in the collection
-        let duplicate = checkDuplicateCourse(entry);
-
-        if (entry.hasOwnProperty('errors') && entry.errors.length > 0) {
-            logger.debug(`The entry has errors: ${util.inspect(entry)}`);
-            return res.status(400).send('There have been validation errors: ' + util.inspect(entry.errors));
-        } else if (duplicate) {
-            logger.debug(`A duplicate course exists`);
-            return res.status(400).send('This course already exists: ' + res.json(entry));
-        } else {
-            //call the create function for our database
-            Course.create({
-                location,
-                mapdate,
-                name,
-                codename,
-                type,
-                inorder,
-                controls
-            }, (err, course) => {
-                if (err) {
-                    res.send('There was a problem adding the course to the database.');
-                    logger.error('The course could not be added to the database');
-                } else {
-                    //course has been created
-                    logger.info(`POST creating new class: ${course}`);
-                    res.format({
-                        // HTML response will set the location and redirect back
-                        // to the home page. You could also create a 'success'
-                        // page if that's your thing
-                        html: () => {
-                            // If it worked, set the header so the address bar
-                            // doesn't still say /adduser
-                            res.location('courses');
-                            // And forward to success page
-                            res.redirect('/courses');
-                        },
-                        // JSON response will show the newly created class
-                        json: () => {
-                            res.json(course);
+        // Validate the input for the new document
+        new Promise((resolve, reject) => {
+                nodeValidator.run(checkCourse, doc, (errorCount, errors) => {
+                    logger.info(`VALIDATION ERRORS - The number of errors is ${errorCount}`);
+                    if (errorCount === 0) {
+                        // If the input is valid, send the document without the error property
+                        resolve(doc);
+                    } else {
+                        // If the input is invalid, send the response with the errors
+                        logger.debug(`VALIDATION ERRORS - The errors found are: ${util.inspect(errors)}`);
+                        doc.errors = errors;
+                        reject(doc);
+                    }
+                });
+            })
+            // If the document has validation errors there's no need to check for duplicates
+            .catch((doc) => {
+                logger.info(doc);
+                res.status(400).send(`There have been validation errors: ${ util.inspect(doc) }`);
+            })
+            // If there are no validation errors, make sure the entry will be unique
+            .then((doc) => {
+                // The validation promise was resolved, now use the validated
+                // document in a new promise that checks for duplicates
+                myLibs.checkForDuplicateDocs(doc, {
+                        location: doc.location,
+                        mapdate: doc.mapdate,
+                        name: doc.name,
+                        type: doc.type,
+                        inorder: doc.inorder,
+                        controls: doc.controls
+                    }, Course)
+                    // If the promise returns true, a duplicate control exists
+                    .then((entry) => {
+                        if (entry) {
+                            logger.info(`DUPLICATE - A duplicate control was found`);
+                            return res.status(400).send({
+                                message: 'This control already exists.',
+                                data: doc
+                            });
+                        } else {
+                            //call the create function for our database
+                            Course.create({
+                                location,
+                                mapdate,
+                                name,
+                                codename,
+                                type,
+                                inorder,
+                                controls
+                            }, (err, course) => {
+                                if (err) {
+                                    res.send('There was a problem adding the course to the database.');
+                                    logger.error('The course could not be added to the database');
+                                } else {
+                                    //course has been created
+                                    logger.info(`POST creating new class: ${course}`);
+                                    res.format({
+                                        // JSON response
+                                        json: () => {
+                                            res.json(course);
+                                        }
+                                    });
+                                }
+                            });
                         }
                     });
-                }
             });
-        }
     })
     .put((req, res) => {
+        // Use arrays to track passed and failed documents for final response
         let length = req.body.length;
-        let updated = [];
+        let passed = [];
         let failed = [];
-        req.body.forEach((value) => {
 
-            // Prevent null or undefined properties
-            const id = value._id || '';
-            const active = value.active || true;
-            const location = value.location || '';
-            const name = value.name || '';
-            const mapdate = value.mapdate || '';
-            const codename = createCodename(name, mapdate) || '';
-            const type = value.type || '';
-            const inorder = value.inorder || true;
-            const controls = value.controls || [];
+        // Helper function to handle the response when all of the 
+        // requested updates have been processed.
+        function checkIfDone() {
+            if (passed.length + failed.length === length) {
+                let all = {
+                    success: passed,
+                    fail: failed,
+                    errors: failed.length > 0
+                };
+                return res.status(201).json(all);
+            }
+            return;
+        }
 
-            // Build the object
-            let required = {
-                id: id,
+        // Iterate over the request to handle multiple updates
+        req.body.forEach((entry) => {
+            logger.debug(`The document in the loop is: ${util.inspect(entry)}`);
+
+            // Store the properties in variables 
+            const id = entry._id;
+            const active = entry.active;
+            const location = entry.location.toLowerCase();
+            const name = entry.name.toLowerCase();
+            const mapdate = entry.mapdate;
+            const codename = createCodename(name, mapdate).toLowerCase();
+            const type = entry.type.toLowerCase();
+            const inorder = entry.inorder;
+            const controls = entry.controls;
+
+            let doc = {
+                active: active,
                 location: location,
                 name: name,
                 mapdate: mapdate,
                 codename: codename,
                 type: type,
-                inorder: inorder
+                inorder: inorder,
+                controls: controls
             };
 
-            let optional = {
-                active: active,
-                controls: controls
-            }
+            // Validation rules for controls property
+            const checkControl = nodeValidator.isObject()
+                .withRequired('number', nodeValidator.isString({
+                    regex: /^[0-9]+$/
+                }))
+                .withRequired('type', customValidator.isIn({
+                    list: ['station', 'control', 'clear', 'finish', 'start']
+                }))
+                .withRequired('points', nodeValidator.isInteger({
+                    min: 0
+                }));
 
-            // Validate the input and add the errors property
-            let entry = validateCourseDoc(required, optional);
+            // Validation rules for the course document
+            const checkCourse = nodeValidator.isObject()
+                .withOptional('active', nodeValidator.isBoolean())
+                .withRequired('location', customValidator.isIn({
+                    list: ['lake raleigh', 'lake johnson', 'schenck forest', 'umstead park']
+                }))
+                .withRequired('name', nodeValidator.isString({
+                    regex: /^[a-z0-9 ]{1,50}$/
+                }))
+                .withRequired('mapdate', nodeValidator.isDate())
+                .withRequired('codename', nodeValidator.isString({
+                    // example: 'upnc2016109-2040''
+                    regex: /^[a-z]{1,6}[0-9]{1,8}-[0-9]{4}$/
+                }))
+                .withRequired('type', customValidator.isIn({
+                    list: ['score', 'classic']
+                }))
+                .withRequired('inorder', nodeValidator.isBoolean())
+                .withOptional('controls', nodeValidator.isArray(checkControl, {
+                    min: 1
+                }))
 
-             // If the data does not validate, add the entry to the fail array
-            if (entry.hasOwnProperty('errors') && entry.errors.length > 0) {
-                failed.push(entry);
-                if (updated.length + failed.length === length) {
-                    let all = {
-                        success: updated,
-                        fail: failed
-                    };
-                    return res.status(201).json(all);
-                }
-                // If the data passes all validation checks...
-            } else {
-
-                // Make changes to the property and send the entire object
-                Course.findByIdAndUpdate(id, {
-                    active,
-                    location,
-                    mapdate,
-                    name,
-                    codename,
-                    type,
-                    inorder,
-                    controls
-                }, {
-                    new: true
-                }, (error, doc) => {
-                    if (error) {
-                        logger.error(error);
-                        failed.push(doc);
-                        if (updated.length + failed.length === length) {
-                            let all = {
-                                success: updated,
-                                fail: failed,
-                                errors: failed.length > 0
-                            };
-                            return res.status(201).json(all);
+            // Validate the input for the new document
+            new Promise((resolve, reject) => {
+                    nodeValidator.run(checkCourse, doc, (errorCount, errors) => {
+                        logger.info(`VALIDATION ERRORS - The number of errors is ${errorCount}`);
+                        if (errorCount === 0) {
+                            // If the input is valid, send the document without the error property
+                            resolve(doc);
+                        } else {
+                            // If the input is invalid, send the response with the errors
+                            logger.debug(`VALIDATION ERRORS - The errors found are: ${util.inspect(errors)}`);
+                            doc.errors = errors;
+                            reject(doc);
                         }
-                    }
-                    updated.push(doc);
-                    if (updated.length + failed.length === length) {
-                        let all = {
-                            success: updated,
-                            fail: failed,
-                            errors: failed.length > 0
-                        };
-                        return res.status(201).json(all);
-                    }
-                });
-            }
+                    });
+                })
+                // If the document has validation errors there's no need to check for duplicates
+                .catch((doc) => {
+                    logger.info(doc);
+                    res.status(400).send(`There have been validation errors: ${ util.inspect(doc) }`);
+                })
+                // If there are no validation errors, make sure the entry will be unique
+                .then((doc) => {
+                    // The validation promise was resolved, now use the validated
+                    // document in a new promise that checks for duplicates
+                    myLibs.checkForDuplicateDocs(doc, {
+                            location: doc.location,
+                            mapdate: doc.mapdate,
+                            name: doc.name,
+                            type: doc.type,
+                            inorder: doc.inorder,
+                            controls: doc.controls
+                        }, Course)
+                        // If the promise returns true, a duplicate control exists
+                        .then((entry) => {
+                            if (entry) {
+                                logger.info(`DUPLICATE - A duplicate control was found`);
+                                doc.errors = [{
+                                    message: "An identical document already exists in the collection."
+                                }];
+                                logger.debug(`FAILED - The entry failed to update: ${util.inspect(doc)}`);
+                                failed.push(doc);
+                                checkIfDone();
+                            } else {
+                                // Make changes to the property and send the entire object
+                                Course.findByIdAndUpdate(id, {
+                                    active,
+                                    location,
+                                    mapdate,
+                                    name,
+                                    codename,
+                                    type,
+                                    inorder,
+                                    controls
+                                }, {
+                                    new: true
+                                }, (error, doc) => {
+                                    // If an error occurs while attempting the update 
+                                    // add the document to the fail array
+                                    if (error) {
+                                        logger.error(error);
+                                        logger.info(`FAILED - The document was not updated.`);
+                                        logger.debug(`FAILED - The document failed to update: ${util.inspect(doc)}`);
+                                        failed.push(doc);
+                                        checkIfDone();
+                                    }
+                                    // Add the updated document to the success array
+                                    logger.info(`UPDATED - The document was updated.`);
+                                    logger.debug(`UPDATED - The document was updated: ${util.inspect(doc)}`);
+                                    passed.push(doc);
+                                    checkIfDone();
+                                });
+                            }
+                        });
+                })
+                // If the initial promise is rejected, add the document to the failed array
+                .catch((doc) => {
+                    logger.debug(`FAILED - The entry failed to update: ${util.inspect(doc)}`);
+                    failed.push(doc);
+                    checkIfDone();
+                })
         });
     })
     .delete((req, res) => {

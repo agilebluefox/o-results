@@ -241,7 +241,7 @@ router.route('/')
                         class: doc.class
                     }, Student).then((entry) => {
                         if (entry) {
-                            logger.info(`DUPLICATE - A duplicate student was found`);
+                            logger.info(`DUPLICATE - A duplicate document was found`);
                             doc.errors = [{
                                 message: "An identical document already exists in the collection."
                             }];

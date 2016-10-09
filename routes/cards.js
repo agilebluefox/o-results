@@ -3,8 +3,10 @@
 const express = require('express');
 const util = require('util');
 const bodyParser = require('body-parser'); //parses information from POST
-const validateCardDoc = require('../libs/custom-validators');
-const logger = require('../libs/logger');
+const nodeValidator = require('node-validator'); // Provides standard validation functions
+const customValidator = require('../libs/custom-validators'); // additional validators 
+const logger = require('../libs/logger'); // Provides logging functions
+const myLibs = require('../libs/helpers'); // Common functions for app
 const Card = require('../models/cards');
 
 const router = express.Router();
@@ -12,26 +14,11 @@ router.use(bodyParser.urlencoded({
     extended: true
 }));
 
-function checkDuplicateCard(entry) {
-    logger.debug(`Checking for duplicate cards: ${util.inspect(entry)}`);
-    Card.count({
-        number: entry.number,
-    }, (err, count) => {
-        logger.debug(`The number of duplicate cards is: ${count}`);
-        if (count > 0) {
-            return true;
-        }
-    })
-}
-
 // define the home page route
-// build the REST operations at the base for cards
-// this will be accessible from http://127.0.0.1:3000/cards if the default
-// route for / is left unchanged
 router.route('/')
     //GET all cards
     .get((req, res) => {
-        //retrieve all cards from Mongo
+        //retrieve all active cards from Mongo
         Card.find({
             active: true
         }, (err, docs) => {
@@ -41,15 +28,6 @@ router.route('/')
                 // respond to both HTML and JSON. JSON responses require
                 // 'Accept: application/json;' in the Request Header
                 res.format({
-                    // HTML response will render the index.pug file in the
-                    // views/cards folder. We are also setting 'cards''
-                    // to be an accessible variable in our pug view
-                    // html: () => {
-                    //     res.render('cards/index', {
-                    //         title: 'All my cards',
-                    //         docs
-                    //     });
-                    // },
                     //JSON response will show all cards in JSON format
                     json: () => {
                         res.json(docs);
@@ -59,139 +37,188 @@ router.route('/')
         });
     })
     .post((req, res) => {
-        // Get values from POST request. These can be done through forms or
-        // REST calls. These rely on the 'name'' attributes for forms
-        const active = req.body.active || true;
-        const number = req.body.number || '';
+        // Get values from POST request and assign to variables
+        const active = req.body.active;
+        const number = req.body.number;
 
-        // Validate data in the request
-        let required = {
+        // The data needed for the new document
+        let doc = {
+            active: active,
             number: number
         };
 
-        let optional = {
-            active: active
+        const checkCard = nodeValidator.isObject()
+            .withRequired('number', nodeValidator.isString({
+                regex: /^[0-9]+$/
+            }))
+            .withOptional('active', nodeValidator.isBoolean());
 
-        };
-        logger.info(entry);
-
-        // Validate the input and add the errors property
-        let entry = validateCardDoc(required, optional);
-
-        // Make sure the new document is not a duplicate of a current
-        // document in the collection
-        let duplicate = checkDuplicateCard(entry);
-
-        if (entry.hasOwnProperty('errors') && entry.errors.length > 0) {
-            logger.debug(`The entry has errors: ${util.inspect(entry)}`);
-            return res.status(400).send('There have been validation errors: ' + util.inspect(entry.errors));
-        } else if (duplicate) {
-            logger.debug(`A duplicate card exists`);
-            return res.status(400).send('This card already exists: ' + res.json(entry));
-        } else {
-
-            //call the create function for our database
-            Card.create({
-                active,
-                number
-            }, (err, doc) => {
-                if (err) {
-                    res.send('There was a problem adding the card to the database.');
-                    logger.error('The card could not be added to the database');
-                } else {
-                    //Card has been created
-                    logger.info(`POST creating new class: ${doc}`);
-                    res.format({
-                        // HTML response will set the location and redirect back
-                        // to the home page. You could also create a 'success'
-                        // page if that's your thing
-                        // html: () => {
-                        //     // If it worked, set the header so the address bar
-                        //     // doesn't still say /adduser
-                        //     res.location('cards');
-                        //     // And forward to success page
-                        //     res.redirect('/cards');
-                        // },
-                        // JSON response will show the newly created class
-                        json: () => {
-                            res.json(doc);
+        // Validate the input for the new document
+        new Promise((resolve, reject) => {
+                nodeValidator.run(checkCard, doc, (errorCount, errors) => {
+                    logger.info(`VALIDATION ERRORS - The number of errors is ${errorCount}`);
+                    if (errorCount === 0) {
+                        // If the input is valid, send the document without the error property
+                        resolve(doc);
+                    } else {
+                        // If the input is invalid, send the response with the errors
+                        logger.debug(`VALIDATION ERRORS - The errors found are: ${util.inspect(errors)}`);
+                        doc.errors = errors;
+                        reject(doc);
+                    }
+                });
+            })
+            // If the document has validation errors there's no need to check for duplicates
+            .catch((doc) => {
+                logger.info(doc);
+                res.status(400).send(`There have been validation errors: ${ util.inspect(doc) }`);
+            })
+            // If there are no validation errors, make sure the entry will be unique
+            .then((doc) => {
+                // The validation promise was resolved, now use the validated
+                // document in a new promise that checks for duplicates
+                myLibs.checkForDuplicateDocs(doc, {
+                        number: doc.number
+                    }, Card)
+                    // If the promise returns true, a duplicate control exists
+                    .then((entry) => {
+                        if (entry) {
+                            logger.info(`DUPLICATE - A duplicate control was found`);
+                            return res.status(400).send({
+                                message: 'This control already exists.',
+                                data: doc
+                            });
+                        } else {
+                            //call the create function for our database
+                            Card.create({
+                                active,
+                                number
+                            }, (err, doc) => {
+                                if (err) {
+                                    res.send('There was a problem adding the card to the database.');
+                                    logger.error('The card could not be added to the database');
+                                } else {
+                                    //Card has been created
+                                    logger.info(`POST creating new class: ${doc}`);
+                                    res.format({
+                                        // JSON response will show the newly created class
+                                        json: () => {
+                                            res.json(doc);
+                                        }
+                                    });
+                                }
+                            });
                         }
                     });
-                }
             });
-        }
     })
     .put((req, res) => {
+        // Use arrays to track passed and failed documents for final response
         let length = req.body.length;
-        let updated = [];
+        let passed = [];
         let failed = [];
-        req.body.forEach((entry) => {
-            // Prevent null or undefined properties 
-            const id = req.body._id || '';
-            const active = req.body.active || true;
-            const number = req.body.number || '';
 
-            entry = {
+        // Helper function to handle the response when all of the 
+        // requested updates have been processed.
+        function checkIfDone() {
+            if (passed.length + failed.length === length) {
+                let all = {
+                    success: passed,
+                    fail: failed,
+                    errors: failed.length > 0
+                };
+                return res.status(201).json(all);
+            }
+            return;
+        }
+
+        // Iterate over the request to handle multiple updates
+        req.body.forEach((entry) => {
+            logger.debug(`The document in the loop is: ${util.inspect(entry)}`);
+
+            // Store the properties in variables 
+            const id = req.body._id;
+            const active = req.body.active;
+            const number = req.body.number;
+
+            // The data needed for the new document
+            let doc = {
                 id: id,
                 active: active,
                 number: number
             };
 
-            // Validate data in the request
-            entry = validateCardDoc(entry);
-            logger.info(entry);
+            const checkCard = nodeValidator.isObject()
+                .withRequired('id', customValidator.isMongoId())
+                .withRequired('number', nodeValidator.isString({
+                    regex: /^[0-9]+$/
+                }))
+                .withOptional('active', nodeValidator.isBoolean());
 
-            // If the data does not validate, add the entry to the fail array
-            if (entry.hasOwnProperty('errors') && entry.errors.length > 0) {
-                failed.push(entry);
-                if (updated.length + failed.length === length) {
-                    let all = {
-                        success: updated,
-                        fail: failed
-                    };
-                    return res.status(201).json(all);
-                }
-                // If the data passes all validation checks...
-            } else {
-                // Update the object
-                Card.findByAndUpdate(id, {
-                    active,
-                    number
-                }, {
-                    new: true
-                }, (error, doc) => {
-                    // If an error occurs while attempting the update 
-                    // add the document to the fail array
-                    if (error) {
-                        logger.error(error);
-                        failed.push(doc);
-                        // When all of the documents have been evaluated
-                        // respond with an object containing the list
-                        // of failures and successes
-                        if (updated.length + failed.length === length) {
-                            let all = {
-                                success: updated,
-                                fail: failed
-                            };
-                            return res.status(201).json(all);
+            // Validate the input for the new document
+            new Promise((resolve, reject) => {
+                    nodeValidator.run(checkCard, doc, (errorCount, errors) => {
+                        logger.info(`VALIDATION ERRORS - The number of errors is ${errorCount}`);
+                        if (errorCount === 0) {
+                            // If the input is valid, send the document without the error property
+                            resolve(doc);
+                        } else {
+                            // If the input is invalid, send the response with the errors
+                            logger.debug(`VALIDATION ERRORS - The errors found are: ${util.inspect(errors)}`);
+                            doc.errors = errors;
+                            reject(doc);
                         }
-                    }
-                    // Add the updated document to the success array
-                    updated.push(doc);
-                    // When all of the documents have been evaluated
-                    // respond with an object containing the list
-                    // of failures and successes
-                    if (updated.length + failed.length === length) {
-                        let all = {
-                            success: updated,
-                            fail: failed
-                        };
-                        return res.status(201).json(all);
-                    }
-                });
-            }
+                    });
+                })
+                .then((doc) => {
+                    // The validation promise was resolved, now use the 
+                    // validated document in a new promise that checks for duplicates
+                    myLibs.checkForDuplicateDocs(doc, {
+                        number: doc.number
+                    }, Card).then((entry) => {
+                        if (entry) {
+                            logger.info(`DUPLICATE - A duplicate control was found`);
+                            doc.errors = [{
+                                message: "An identical document already exists in the collection."
+                            }];
+                            logger.debug(`FAILED - The entry failed to update: ${util.inspect(doc)}`);
+                            failed.push(doc);
+                            checkIfDone();
+                        } else {
+                            // Update the object
+                            Card.findByAndUpdate(id, {
+                                active,
+                                number
+                            }, {
+                                new: true
+                            }, (error, doc) => {
+                                // If an error occurs while attempting the update 
+                                // add the document to the fail array
+                                if (error) {
+                                    logger.error(error);
+                                    logger.info(`FAILED - The document was not updated.`);
+                                    logger.debug(`FAILED - The document failed to update: ${util.inspect(doc)}`);
+                                    failed.push(doc);
+                                    checkIfDone();
+                                }
+                                // Add the updated document to the success array
+                                logger.info(`UPDATED - The document was updated.`);
+                                logger.debug(`UPDATED - The document was updated: ${util.inspect(doc)}`);
+                                passed.push(doc);
+                                checkIfDone();
+                            });
+                        }
+                    });
+                })
+                // If the initial promise is rejected, add the document to the failed array
+                .catch((doc) => {
+                    logger.debug(`FAILED - The entry failed to update: ${util.inspect(doc)}`);
+                    failed.push(doc);
+                    checkIfDone();
+                })
         });
     })
+    // Instead of deleting the document, set the active property to false
     .delete((req, res) => {
         const id = req.body._id;
         Card.findByIdAndUpdate(id, {

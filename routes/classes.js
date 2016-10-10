@@ -40,10 +40,10 @@ router.route('/')
         // Get values from POST request and assign to variables
         const active = req.body.active;
         const year = req.body.year;
-        const semester = req.body.semester.toLowerCase();
-        const prefix = req.body.prefix.toLowerCase();
+        const semester = req.body.semester;
+        const prefix = req.body.prefix;
         const number = req.body.number;
-        const name = req.body.name.toLowerCase();
+        const name = req.body.name;
         const section = req.body.section;
 
         // The properties for the new object
@@ -67,13 +67,13 @@ router.route('/')
                 list: ['fall', 'spring', 'summer 1', 'summer 2']
             }))
             .withRequired('prefix', nodeValidator.isString({
-                regex: /(heso)/
+                regex: /[Hh][Ee][Ss][Oo]/
             }))
             .withRequired('number', nodeValidator.isString({
                 regex: /(253)/
             }))
             .withRequired('name', nodeValidator.isString({
-                regex: /(orienteering)/
+                regex: /[a-zA-Z]{1,30}/
             }))
             .withRequired('section', nodeValidator.isString({
                 regex: /[0-9]{3}/
@@ -126,7 +126,7 @@ router.route('/')
                                 active,
                                 year,
                                 semester,
-                                prefix,
+                                prefix: prefix.toUpperCase(),
                                 number,
                                 name,
                                 section
@@ -204,13 +204,13 @@ router.route('/')
                     list: ['fall', 'spring', 'summer 1', 'summer 2']
                 }))
                 .withRequired('prefix', nodeValidator.isString({
-                    regex: /(heso)/
+                    regex: /[Hh][Ee][Ss][Oo]/
                 }))
                 .withRequired('number', nodeValidator.isString({
                     regex: /(253)/
                 }))
                 .withRequired('name', nodeValidator.isString({
-                    regex: /(orienteering)/
+                    regex: /[a-zA-Z]{1,30}/
                 }))
                 .withRequired('section', nodeValidator.isString({
                     regex: /[0-9]{3}/
@@ -260,7 +260,7 @@ router.route('/')
                                     active,
                                     year,
                                     semester,
-                                    prefix,
+                                    prefix: prefix.toUpperCase(),
                                     number,
                                     name,
                                     section

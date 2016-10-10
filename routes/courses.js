@@ -39,10 +39,10 @@ router.route('/')
     .post((req, res) => {
         // Get values from POST request and assign to variables
         const active = req.body.active;
-        const location = req.body.location.toLowerCase();
-        const name = req.body.name.toLowerCase();
+        const location = req.body.location;
+        const name = req.body.name;
         const mapdate = req.body.mapdate;
-        const codename = createCodename(name, mapdate).toLowerCase();
+        const codename = createCodename(name, mapdate);
         const type = req.body.type.toLowerCase();
         const inorder = req.body.inorder;
         const controls = req.body.controls;
@@ -77,12 +77,12 @@ router.route('/')
                 list: ['lake raleigh', 'lake johnson', 'schenck forest', 'umstead park']
             }))
             .withRequired('name', nodeValidator.isString({
-                regex: /^[a-z0-9 ]{1,50}$/
+                regex: /^[A-Za-z0-9 ]{1,50}$/
             }))
             .withRequired('mapdate', nodeValidator.isDate())
             .withRequired('codename', nodeValidator.isString({
                     // example: 'upnc2016109-2040''
-                    regex: /^[a-z]{1,6}[0-9]{1,8}-[0-9]{4}$/
+                    regex: /^[a-zA-Z]{1,6}[0-9]{1,8}-[0-9]{4}$/
             }))
             .withRequired('type', customValidator.isIn({
                 list: ['score', 'classic']
@@ -138,7 +138,7 @@ router.route('/')
                                 location,
                                 mapdate,
                                 name,
-                                codename,
+                                codename: codename.toLowerCase(),
                                 type,
                                 inorder,
                                 controls
@@ -188,11 +188,11 @@ router.route('/')
             // Store the properties in variables 
             const id = entry._id;
             const active = entry.active;
-            const location = entry.location.toLowerCase();
-            const name = entry.name.toLowerCase();
+            const location = entry.location;
+            const name = entry.name;
             const mapdate = entry.mapdate;
-            const codename = createCodename(name, mapdate).toLowerCase();
-            const type = entry.type.toLowerCase();
+            const codename = createCodename(name, mapdate);
+            const type = entry.type;
             const inorder = entry.inorder;
             const controls = entry.controls;
 
@@ -226,7 +226,7 @@ router.route('/')
                     list: ['lake raleigh', 'lake johnson', 'schenck forest', 'umstead park']
                 }))
                 .withRequired('name', nodeValidator.isString({
-                    regex: /^[a-z0-9 ]{1,50}$/
+                    regex: /^[A-Za-z0-9 ]{1,50}$/
                 }))
                 .withRequired('mapdate', nodeValidator.isDate())
                 .withRequired('codename', nodeValidator.isString({
@@ -290,7 +290,7 @@ router.route('/')
                                     location,
                                     mapdate,
                                     name,
-                                    codename,
+                                    codename: codename.toLowerCase(),
                                     type,
                                     inorder,
                                     controls

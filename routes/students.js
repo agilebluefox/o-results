@@ -41,10 +41,10 @@ router.route('/')
     .post((req, res) => {
         // Get values from POST request and assign to variables
         const active = req.body.active;
-        const unityid = req.body.unityid.toLowerCase();
-        const email = req.body.email.toLowerCase();
-        const firstname = req.body.firstname.toLowerCase();
-        const lastname = req.body.lastname.toLowerCase();
+        const unityid = req.body.unityid;
+        const email = req.body.email;
+        const firstname = req.body.firstname;
+        const lastname = req.body.lastname;
         const sex = req.body.sex;
         const cls = req.body.class;
 
@@ -121,8 +121,8 @@ router.route('/')
                             //call the create function for our database
                             Student.create({
                                 active,
-                                unityid,
-                                email,
+                                unityid: unityid.toLowerCase(),
+                                email: email.toLowerCase(),
                                 firstname,
                                 lastname,
                                 sex,
@@ -173,10 +173,10 @@ router.route('/')
             // Store the properties in variables
             const id = entry._id;
             const active = entry.active;
-            const unityid = entry.unityid.toLowerCase();
-            const email = entry.email.toLowerCase();
-            const firstname = entry.firstname.toLowerCase();
-            const lastname = entry.lastname.toLowerCase();
+            const unityid = entry.unityid;
+            const email = entry.email;
+            const firstname = entry.firstname;
+            const lastname = entry.lastname;
             const sex = entry.sex;
             const cls = entry.class;
 
@@ -233,8 +233,8 @@ router.route('/')
                     // The validation promise was resolved, now use the 
                     // validated document in a new promise that checks for duplicates
                     myLibs.checkForDuplicateDocs(doc, {
-                        email: doc.email,
-                        unityid: doc.unityid,
+                        email: doc.email.toLowerCase(),
+                        unityid: doc.unityid.toLowerCase(),
                         firstname: doc.firstname,
                         lastname: doc.lastname,
                         sex: doc.sex,

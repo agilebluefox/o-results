@@ -16,7 +16,7 @@ function isIn(options) {
             return onError('Required value.');
         }
 
-        if (options.list.indexOf(value) === -1) {
+        if (options.list.indexOf(value.toLowerCase()) === -1) {
             return onError(options.message || 'The value was not in the list of choices');
         }
         return null;
@@ -37,7 +37,7 @@ function isEmail() {
         // Basic regex for typical email addresses with limits on size
         let regex = /^[a-z0-9._%+-]{1,50}@[a-z0-9.-]{1,25}\.[a-z]{2,6}$/;
 
-        if (!regex.test(value)) {
+        if (!regex.test(value.toLowerCase())) {
             return onError('The email address is not valid.');
         }
         return null;
@@ -55,7 +55,7 @@ function isMongoId() {
             return onError('Required value.');
         }
 
-        let regex = /^[0-9a-zA-Z]{24}$/;
+        let regex = /^[0-9a-z]{24}$/;
 
         if (!regex.test(value)) {
             return onError('The Mongo Id is not valid.');

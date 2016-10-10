@@ -40,7 +40,7 @@ router.route('/')
         // Get values from POST request and assign to variables
         const active = req.body.active;
         const number = req.body.number;
-        const type = req.body.type.toLowerCase();
+        const type = req.body.type;
         const points = req.body.points;
 
         // The data needed for the new document
@@ -152,7 +152,7 @@ router.route('/')
             // Store the properties in variables 
             const id = entry._id;
             const active = entry.active;
-            const type = entry.type.toLowerCase();
+            const type = entry.type;
             const points = entry.points;
 
             // Store the data in the request

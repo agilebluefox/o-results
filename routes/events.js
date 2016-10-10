@@ -41,8 +41,8 @@ router.route('/')
     .post((req, res) => {
         // Get values from POST request.
         const active = req.body.active;
-        const location = req.body.location.toLowerCase();
-        const name = req.body.name.toLowerCase();
+        const location = req.body.location;
+        const name = req.body.name;
         const date = req.body.date;
         const courses = req.body.courses;
         const classes = req.body.classes;
@@ -72,7 +72,7 @@ router.route('/')
                 list: ['lake raleigh', 'lake johnson', 'schenck forest', 'umstead park']
             }))
             .withRequired('name', nodeValidator.isString({
-                regex: /^[a-z0-9 ]{1,50}$/
+                regex: /^[a-zA-Z0-9 ]{1,50}$/
             }))
             .withRequired('date', nodeValidator.isDate())
             .withOptional('courses', nodeValidator.isArray(checkCourse))
@@ -171,8 +171,8 @@ router.route('/')
             // Store the properties in variables
             const id = entry._id;
             const active = entry.active;
-            const location = entry.location.toLowerCase();
-            const name = entry.name.toLowerCase();
+            const location = entry.location;
+            const name = entry.name;
             const date = entry.date;
             const courses = entry.courses;
             const classes = entry.classes;
@@ -204,7 +204,7 @@ router.route('/')
                     list: ['lake raleigh', 'lake johnson', 'schenck forest', 'umstead park']
                 }))
                 .withRequired('name', nodeValidator.isString({
-                    regex: /^[a-z0-9 ]{1,50}$/
+                    regex: /^[a-zA-Z0-9 ]{1,50}$/
                 }))
                 .withRequired('date', nodeValidator.isDate())
                 .withOptional('courses', nodeValidator.isArray(checkCourse))

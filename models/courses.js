@@ -21,8 +21,10 @@ const schema = new Schema({
         {
             number: { type: String, required: true },
             type: { type: String, required: true },
-            points: { type: Number }
-        }
+            points: { type: Number },
+             _id: false,
+            id: false
+        } 
     ]
 });
 

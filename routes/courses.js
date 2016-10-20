@@ -88,7 +88,7 @@ router.route('/')
                 list: ['score', 'classic']
             }))
             .withRequired('inorder', nodeValidator.isBoolean())
-            .withOptional('controls', nodeValidator.isArray(checkControl, {
+            .withRequired('controls', nodeValidator.isArray(checkControl, {
                 min: 1
             }));
 
@@ -114,6 +114,7 @@ router.route('/')
             })
             // If there are no validation errors, make sure the entry will be unique
             .then((doc) => {
+                logger.info(`Checking for duplicate documents in ${util.inspect(doc)}`);
                 // The validation promise was resolved, now use the validated
                 // document in a new promise that checks for duplicates
                 myLibs.checkForDuplicateDocs(doc, {
@@ -124,12 +125,12 @@ router.route('/')
                         inorder: doc.inorder,
                         controls: doc.controls
                     }, Course)
-                    // If the promise returns true, a duplicate control exists
+                    // If the promise returns true, a duplicate document exists
                     .then((entry) => {
                         if (entry) {
-                            logger.info(`DUPLICATE - A duplicate control was found`);
+                            logger.info(`DUPLICATE - A duplicate document was found`);
                             return res.status(400).send({
-                                message: 'This control already exists.',
+                                message: 'This document already exists.',
                                 data: doc
                             });
                         } else {
@@ -237,7 +238,7 @@ router.route('/')
                     list: ['score', 'classic']
                 }))
                 .withRequired('inorder', nodeValidator.isBoolean())
-                .withOptional('controls', nodeValidator.isArray(checkControl, {
+                .withRequired('controls', nodeValidator.isArray(checkControl, {
                     min: 1
                 }))
 

@@ -24,6 +24,7 @@ router.route('/')
             })
             .populate('courses')
             .populate('classes')
+            .populate('students')
             .exec((err, docs) => {
                 if (err) {
                     logger.error(err);
@@ -40,13 +41,13 @@ router.route('/')
     })
     .post((req, res) => {
         // Get values from POST request.
-        const active = req.body.active;
+        const active = req.body.active || true;
         const location = req.body.location;
         const name = req.body.name;
         const date = req.body.date;
-        const courses = req.body.courses;
-        const classes = req.body.classes;
-
+        const courses = req.body.courses || [];
+        const classes = req.body.classes || [];
+        const students = req.body.students || [];
         // Store the data in the request
         let doc = {
             active: active,
@@ -54,7 +55,8 @@ router.route('/')
             name: name,
             date: date,
             courses: courses,
-            classes: classes
+            classes: classes,
+            students: students
         };
 
         // Validation rules for the courses property
@@ -63,6 +65,10 @@ router.route('/')
 
         // Validation rules for the classes property
         const checkClass = nodeValidator.isObject()
+            .withRequired('_id', customValidator.isMongoId());
+
+        // Validation rules for the students property
+        const checkStudent = nodeValidator.isObject()
             .withRequired('_id', customValidator.isMongoId());
 
         // Validation rules for the event document
@@ -76,7 +82,8 @@ router.route('/')
             }))
             .withRequired('date', nodeValidator.isDate())
             .withOptional('courses', nodeValidator.isArray(checkCourse))
-            .withOptional('classes', nodeValidator.isArray(checkClass));
+            .withOptional('classes', nodeValidator.isArray(checkClass))
+            .withOptional('students', nodeValidator.isArray(checkStudent));
 
         // Validate the input for the new document
         new Promise((resolve, reject) => {
@@ -96,7 +103,10 @@ router.route('/')
             // If the document has validation errors there's no need to check for duplicates
             .catch((doc) => {
                 logger.info(doc);
-                res.status(400).send(`There have been validation errors: ${ util.inspect(doc) }`);
+                res.status(400).send({
+                    message: 'There have been validation errors',
+                    result: `${ util.inspect(doc) }`
+                });
             })
             // If there are no validation errors, make sure the entry will be unique
             .then((doc) => {
@@ -124,7 +134,8 @@ router.route('/')
                                 name,
                                 date,
                                 courses,
-                                classes
+                                classes,
+                                students
                             }, (err, doc) => {
                                 if (err) {
                                     res.send('There was a problem adding the event to the database.');
@@ -176,6 +187,7 @@ router.route('/')
             const date = entry.date;
             const courses = entry.courses;
             const classes = entry.classes;
+            const students = entry.students;
 
             // Store the data in the request
             let doc = {
@@ -185,7 +197,8 @@ router.route('/')
                 name: name,
                 date: date,
                 courses: courses,
-                classes: classes
+                classes: classes,
+                students: students
             };
 
             // Validation rules for the courses property
@@ -194,6 +207,10 @@ router.route('/')
 
             // Validation rules for the classes property
             const checkClass = nodeValidator.isObject()
+                .withRequired('_id', customValidator.isMongoId());
+
+            // Validation rules for the students property
+            const checkStudent = nodeValidator.isObject()
                 .withRequired('_id', customValidator.isMongoId());
 
             // Validation rules for the event document
@@ -208,8 +225,8 @@ router.route('/')
                 }))
                 .withRequired('date', nodeValidator.isDate())
                 .withOptional('courses', nodeValidator.isArray(checkCourse))
-                .withOptional('classes', nodeValidator.isArray(checkClass));
-
+                .withOptional('classes', nodeValidator.isArray(checkClass))
+                .withOptional('students', nodeValidator.isArray(checkStudent));
             // Validate the input for the new document
             new Promise((resolve, reject) => {
                     nodeValidator.run(checkEvent, doc, (errorCount, errors) => {
@@ -231,9 +248,10 @@ router.route('/')
                     myLibs.checkForDuplicateDocs(doc, {
                         location: doc.location,
                         name: doc.name,
-                        date: doc.date,
-                        courses: doc.courses,
-                        classes: doc.classes
+                        date: doc.date
+                        // courses: doc.courses,
+                        // classes: doc.classes,
+                        // students: doc.students
                     }, Event).then((entry) => {
                         if (entry) {
                             logger.info(`DUPLICATE - A duplicate document was found`);
@@ -251,7 +269,8 @@ router.route('/')
                                 name,
                                 date,
                                 courses,
-                                classes
+                                classes,
+                                students
                             }, {
                                 new: true
                             }, (error, doc) => {
@@ -282,7 +301,7 @@ router.route('/')
         });
     })
     .delete((req, res) => {
-        const id = req.body._id;
+        const id = req.body.id;
         Event.findByIdAndUpdate(id, {
             active: false
         }, {
@@ -293,7 +312,7 @@ router.route('/')
                     message: 'Could not delete the event'
                 });
             }
-            return res.status(201).json(doc);
+            res.status(201).json(doc);
         });
     });
 

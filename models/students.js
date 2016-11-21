@@ -15,7 +15,7 @@ const schema = new Schema({
     lastname: { type: String, required: true },
     // Represent female as 0 and male as 1
     sex: { type: Number, required: true, min: 0, max: 1 },
-    class: [{ type: Schema.Types.ObjectId, ref: 'Class', required: true }]
+    class: [{ type: Schema.Types.ObjectId, ref: 'Class' }]
 });
 
 schema.plugin(mongooseUniqueValidator);

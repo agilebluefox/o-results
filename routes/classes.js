@@ -38,8 +38,8 @@ router.route('/')
     })
     .post((req, res) => {
         // Get values from POST request and assign to variables
-        const active = req.body.active;
-        const year = req.body.year;
+        const active = req.body.active || true;
+        const year = +req.body.year;
         const semester = req.body.semester;
         const prefix = req.body.prefix;
         const number = req.body.number;
@@ -97,7 +97,10 @@ router.route('/')
             // If the document has validation errors there's no need to check for duplicates
             .catch((doc) => {
                 logger.info(doc);
-                res.status(400).send(`There have been validation errors: ${ util.inspect(doc) }`);
+                res.status(400).send({
+                    message: 'There have been validation errors.',
+                    result: `${util.inspect(doc)}`
+                });
             })
             // If there are no validation errors, make sure the document will be unique
             .then((doc) => {

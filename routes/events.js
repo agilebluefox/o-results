@@ -16,30 +16,8 @@ router.use(bodyParser.urlencoded({
 
 // define the home page route
 router.route('/')
-    //GET all events
-    .get((req, res) => {
-        //retrieve all events from Mongo
-        Event.find({
-                active: true
-            })
-            .populate('courses')
-            .populate('classes')
-            .populate('students')
-            .exec((err, docs) => {
-                if (err) {
-                    logger.error(err);
-                } else {
-                    // JSON responses require 'Accept: application/json;' in the Request Header
-                    res.format({
-                        //JSON response will show all events in JSON format
-                        json: () => {
-                            res.json(docs);
-                        }
-                    });
-                }
-            });
-    })
     .post((req, res) => {
+        logger.debug('In the Event route ... POST Method');
         // Get values from POST request.
         const active = req.body.active || true;
         const location = req.body.location;
@@ -156,6 +134,7 @@ router.route('/')
             });
     })
     .put((req, res) => {
+        logger.debug('In the Event route ... PUT Method');
         // Use arrays to track passed and failed documents for final response
         let length = req.body.length;
         let passed = [];
@@ -249,9 +228,9 @@ router.route('/')
                         location: doc.location,
                         name: doc.name,
                         date: doc.date
-                        // courses: doc.courses,
-                        // classes: doc.classes,
-                        // students: doc.students
+                            // courses: doc.courses,
+                            // classes: doc.classes,
+                            // students: doc.students
                     }, Event).then((entry) => {
                         if (entry) {
                             logger.info(`DUPLICATE - A duplicate document was found`);
@@ -301,6 +280,7 @@ router.route('/')
         });
     })
     .delete((req, res) => {
+        logger.debug('In the Event route ... DELETE Method');
         const id = req.body.id;
         Event.findByIdAndUpdate(id, {
             active: false
@@ -315,5 +295,76 @@ router.route('/')
             res.status(201).json(doc);
         });
     });
+
+router.get('/populate/:populate/active/:active', (req, res) => {
+    logger.debug('In the Event route ... GET Method');
+    let coursesModel = 'courses';
+    let classesModel = 'classes';
+    let studentsModel = 'students';
+    let active = req.params.active || true;
+
+    logger.debug(`Active parameter is: ${active}`);
+    logger.debug(JSON.stringify(req.params));
+
+    let populate = req.params.populate || false;
+    logger.debug(`The populate param is: ${ req.params.populate }`);
+
+    if (!populate || populate === 'false') {
+        logger.debug(`The populate param is: ${ populate } and it should be FALSE`);
+        Event.find({
+                active: active
+            })
+            .exec((err, docs) => {
+                if (err) {
+                    logger.error(err);
+                    return res.json({
+                        title: 'An error occurred retrieving the events',
+                        error: err
+                    });
+                } else {
+                    return res.json({
+                        message: 'Success',
+                        events: docs
+                    });
+                }
+            });
+    } else {
+        logger.debug(`The populate param is: ${ populate } and it should be TRUE`);
+        //retrieve all events from Mongo based on the active property
+        Event.find({
+                active: active
+            })
+            .populate({
+                path: coursesModel
+            })
+            .populate({
+                path: classesModel
+            })
+            .populate({
+                path: studentsModel
+            })
+            .exec((err, docs) => {
+                if (err) {
+                    logger.error(err);
+                    return res.json({
+                        title: 'An error occurred retrieving the events',
+                        error: err
+                    });
+                } else {
+                    // JSON responses require 'Accept: application/json;' in the Request Header
+                    res.format({
+                        //JSON response will show all events in JSON format
+                        json: () => {
+                            res.json({
+                                message: 'Success',
+                                events: docs
+                            });
+                        }
+                    });
+                }
+            });
+    }
+});
+
 
 module.exports = router;

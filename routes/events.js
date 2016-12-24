@@ -43,8 +43,6 @@ router.route('/')
         const location = req.body.location;
         const name = req.body.name;
         const date = req.body.date;
-        const courses = req.body.courses || [];
-        const classes = req.body.classes || [];
         const students = req.body.students || [];
         // Store the data in the request
         let doc = {
@@ -52,18 +50,8 @@ router.route('/')
             location: location,
             name: name,
             date: date,
-            courses: courses,
-            classes: classes,
             students: students
         };
-
-        // Validation rules for the courses property
-        const checkCourse = nodeValidator.isObject()
-            .withRequired('_id', customValidator.isMongoId());
-
-        // Validation rules for the classes property
-        const checkClass = nodeValidator.isObject()
-            .withRequired('_id', customValidator.isMongoId());
 
         // Validation rules for the students property
         const checkStudent = nodeValidator.isObject()
@@ -79,8 +67,6 @@ router.route('/')
                 regex: /^[a-zA-Z0-9 ]{1,50}$/
             }))
             .withRequired('date', nodeValidator.isDate())
-            .withOptional('courses', nodeValidator.isArray(checkCourse))
-            .withOptional('classes', nodeValidator.isArray(checkClass))
             .withOptional('students', nodeValidator.isArray(checkStudent));
 
         // Validate the input for the new document
@@ -131,8 +117,6 @@ router.route('/')
                                 location,
                                 name,
                                 date,
-                                courses,
-                                classes,
                                 students
                             }, (err, doc) => {
                                 if (err) {
@@ -184,8 +168,6 @@ router.route('/')
             const location = entry.location;
             const name = entry.name;
             const date = entry.date;
-            const courses = entry.courses;
-            const classes = entry.classes;
             const students = entry.students;
 
             // Store the data in the request
@@ -195,16 +177,8 @@ router.route('/')
                 location: location,
                 name: name,
                 date: date,
-                courses: courses,
-                classes: classes,
                 students: students
             };
-
-            // Validation rules for the courses property
-            const checkCourse = customValidator.isMongoId();
-
-            // Validation rules for the classes property
-            const checkClass = customValidator.isMongoId();
 
             // Validation rules for the students property
             const checkStudent = customValidator.isMongoId();
@@ -220,8 +194,6 @@ router.route('/')
                     regex: /^[a-zA-Z0-9 ]{1,50}$/
                 }))
                 .withRequired('date', nodeValidator.isDate())
-                .withOptional('courses', nodeValidator.isArray(checkCourse))
-                .withOptional('classes', nodeValidator.isArray(checkClass))
                 .withOptional('students', nodeValidator.isArray(checkStudent));
             // Validate the input for the new document
             new Promise((resolve, reject) => {
@@ -248,8 +220,6 @@ router.route('/')
                         _id: {
                             "$ne": doc.id
                         }
-                        // courses: doc.courses,
-                        // classes: doc.classes,
                         // students: doc.students
                     }, Event).then((entry) => {
                         if (entry) {
@@ -267,8 +237,6 @@ router.route('/')
                                 location,
                                 name,
                                 date,
-                                courses,
-                                classes,
                                 students
                             }, {
                                 new: true
@@ -318,8 +286,6 @@ router.route('/')
 
 router.get('/populate/:populate/active/:active', (req, res) => {
     logger.debug('In the Event route ... GET Method');
-    let coursesModel = 'courses';
-    let classesModel = 'classes';
     let studentsModel = 'students';
     let active = req.params.active || true;
 
@@ -354,12 +320,7 @@ router.get('/populate/:populate/active/:active', (req, res) => {
         Event.find({
                 active: active
             })
-            .populate({
-                path: coursesModel
-            })
-            .populate({
-                path: classesModel
-            })
+
             .populate({
                 path: studentsModel
             })

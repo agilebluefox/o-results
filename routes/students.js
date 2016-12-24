@@ -45,8 +45,6 @@ router.route('/')
         const email = req.body.email;
         const firstname = req.body.firstname;
         const lastname = req.body.lastname;
-        const sex = req.body.sex;
-        const cls = req.body.class;
 
         // The data needed for the new document
         let doc = {
@@ -54,14 +52,8 @@ router.route('/')
             unityid: unityid,
             email: email,
             firstname: firstname,
-            lastname: lastname,
-            sex: sex,
-            class: cls
+            lastname: lastname
         };
-
-        // Validation rules for the class properties
-        const checkClass = nodeValidator.isObject()
-            .withRequired('_id', customValidator.isMongoId());
 
         // Validation rules for the student document
         const checkStudent = nodeValidator.isObject()
@@ -71,15 +63,7 @@ router.route('/')
             }))
             .withRequired('email', customValidator.isEmail())
             .withRequired('firstname', nodeValidator.isString())
-            .withRequired('lastname', nodeValidator.isString())
-            .withRequired('sex', nodeValidator.isInteger({
-                min: 0,
-                max: 1
-            }))
-            .withRequired('class', nodeValidator.isArray(
-                checkClass, {
-                    min: 1
-                }));
+            .withRequired('lastname', nodeValidator.isString());
 
         // Validate the input for the new document
         new Promise((resolve, reject) => {
@@ -124,9 +108,7 @@ router.route('/')
                                 unityid: unityid.toLowerCase(),
                                 email: email.toLowerCase(),
                                 firstname,
-                                lastname,
-                                sex,
-                                class: cls
+                                lastname
                             }, (err, doc) => {
                                 if (err) {
                                     res.send('There was a problem adding the student to the database.');
@@ -177,8 +159,6 @@ router.route('/')
             const email = entry.email;
             const firstname = entry.firstname;
             const lastname = entry.lastname;
-            const sex = entry.sex;
-            const cls = entry.class;
 
             let doc = {
                 id: id,
@@ -186,14 +166,8 @@ router.route('/')
                 unityid: unityid,
                 email: email,
                 firstname: firstname,
-                lastname: lastname,
-                sex: sex,
-                class: cls
+                lastname: lastname
             };
-
-            // Validation rules for the class property
-            const checkClass = nodeValidator.isObject()
-                .withRequired('_id', customValidator.isMongoId());
 
             // Validation rules for the student document
             const checkStudent = nodeValidator.isObject()
@@ -204,15 +178,7 @@ router.route('/')
                 }))
                 .withRequired('email', customValidator.isEmail())
                 .withRequired('firstname', nodeValidator.isString())
-                .withRequired('lastname', nodeValidator.isString())
-                .withRequired('sex', nodeValidator.isInteger({
-                    min: 0,
-                    max: 1
-                }))
-                .withRequired('class', nodeValidator.isArray(
-                    checkClass, {
-                        min: 1
-                    }));
+                .withRequired('lastname', nodeValidator.isString());
 
             // Validate the input for the new document
             new Promise((resolve, reject) => {
@@ -236,9 +202,7 @@ router.route('/')
                         email: doc.email.toLowerCase(),
                         unityid: doc.unityid.toLowerCase(),
                         firstname: doc.firstname,
-                        lastname: doc.lastname,
-                        sex: doc.sex,
-                        class: doc.class
+                        lastname: doc.lastname
                     }, Student).then((entry) => {
                         if (entry) {
                             logger.info(`DUPLICATE - A duplicate document was found`);
@@ -255,9 +219,7 @@ router.route('/')
                                 unityid,
                                 email,
                                 firstname,
-                                lastname,
-                                sex,
-                                class: cls
+                                lastname
                             }, {
                                 new: true
                             }, (error, doc) => {

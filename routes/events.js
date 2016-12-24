@@ -16,6 +16,26 @@ router.use(bodyParser.urlencoded({
 
 // define the home page route
 router.route('/')
+    .get((req, res) => {
+        logger.debug('In the Event route ... GET Method');
+        Event.find({
+                active: true
+            })
+            .exec((err, docs) => {
+                if (err) {
+                    logger.error(err);
+                    return res.json({
+                        title: 'An error occurred retrieving the events',
+                        error: err
+                    });
+                } else {
+                    return res.json({
+                        message: 'Success',
+                        events: docs
+                    });
+                }
+            });
+    })
     .post((req, res) => {
         logger.debug('In the Event route ... POST Method');
         // Get values from POST request.
@@ -181,16 +201,13 @@ router.route('/')
             };
 
             // Validation rules for the courses property
-            const checkCourse = nodeValidator.isObject()
-                .withRequired('_id', customValidator.isMongoId());
+            const checkCourse = customValidator.isMongoId();
 
             // Validation rules for the classes property
-            const checkClass = nodeValidator.isObject()
-                .withRequired('_id', customValidator.isMongoId());
+            const checkClass = customValidator.isMongoId();
 
             // Validation rules for the students property
-            const checkStudent = nodeValidator.isObject()
-                .withRequired('_id', customValidator.isMongoId());
+            const checkStudent = customValidator.isMongoId();
 
             // Validation rules for the event document
             const checkEvent = nodeValidator.isObject()
@@ -227,10 +244,13 @@ router.route('/')
                     myLibs.checkForDuplicateDocs(doc, {
                         location: doc.location,
                         name: doc.name,
-                        date: doc.date
-                            // courses: doc.courses,
-                            // classes: doc.classes,
-                            // students: doc.students
+                        date: doc.date,
+                        _id: {
+                            "$ne": doc.id
+                        }
+                        // courses: doc.courses,
+                        // classes: doc.classes,
+                        // students: doc.students
                     }, Event).then((entry) => {
                         if (entry) {
                             logger.info(`DUPLICATE - A duplicate document was found`);

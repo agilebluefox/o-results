@@ -119,7 +119,10 @@ router.route('/')
                                     res.format({
                                         // JSON response will show the newly created document
                                         json: () => {
-                                            res.json(doc);
+                                            res.json({
+                                                message: 'The student was added to the database',
+                                                data: doc
+                                            });
                                         }
                                     });
                                 }
@@ -143,7 +146,10 @@ router.route('/')
                     fail: failed,
                     errors: failed.length > 0
                 };
-                return res.status(201).json(all);
+                return res.status(201).json({
+                    message: 'Check the data property for the results',
+                    data: all
+                });
             }
             return;
         }
@@ -261,7 +267,10 @@ router.route('/')
                     message: 'Could not delete the student'
                 });
             }
-            return res.status(201).json(doc);
+            return res.status(201).json({
+                message: 'The student was deleted from the database',
+                data: doc
+            });
         });
     });
 
@@ -275,7 +284,7 @@ router.route('/:id').get((req, res) => {
         }
         return res.status(200).json({
             message: 'The student was successfully retrieved',
-            student: student
+            data: student
         });
     });
 });

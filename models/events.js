@@ -9,7 +9,7 @@ const schema = new Schema({
     active: { type: Boolean, default: true },
     location: { type: String, required: true },
     name: { type: String, required: true },
-    date: { type: Date, required: true },
+    date: { type: String, required: true },
     students: [{ type: Schema.Types.ObjectId, ref: 'Student' }]
 });
 

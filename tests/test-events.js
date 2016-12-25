@@ -4,8 +4,6 @@ const expect = require('./test-server');
 const logger = require('../libs/logger');
 
 // Require models
-const Class = require('../models/classes');
-const Course = require('../models/courses');
 const Event = require('../models/events');
 const data = require('./data/test-events.json');
 
@@ -16,35 +14,17 @@ function addEvent(done) {
         Event.create({
             location: event.location,
             name: event.name,
-            date: event.date,
-            courses,
-            classes
+            date: event.date
         });
     });
     return done();
 }
-
-// Set variables to hold the course and class objectIds
-let courses = null;
-let classes = null;
 
 describe('Event collection: ', () => {
     // Clear the collection before running the tests
     before('Empty the event collection', (done) => {
         Event.remove().exec();
         return done();
-    });
-
-    before('Get the class and course arrays', (done) => {
-        Class.find({ section: '196' }, (error, entry) => {
-            if (error) logger.error(error);
-            classes = entry;
-            Course.find({ location: 'Umstead Park' }, (err, cls) => {
-                if (err) logger.error(err);
-                courses = cls;
-                return done();
-            });
-        });
     });
 
     // Insert the test data into the collection

@@ -3,35 +3,30 @@
         "unityid": "daconner",
         "email": "daconner@ncsu.edu",
         "firstname": "David",
-        "lastname": "Conner",
-        "sex": 1
+        "lastname": "Conner"
     },
     {
         "unityid": "jdoe",
         "email": "jdoe@ncsu.edu",
         "firstname": "John",
-        "lastname": "Doe",
-        "sex": 1
+        "lastname": "Doe"
     },
     {
         "unityid": "jdoe02",
         "email": "jdoe02@ncsu.edu",
         "firstname": "Jane",
-        "lastname": "Doe",
-        "sex": 0
+        "lastname": "Doe"
     },
     {
         "unityid": "msmith",
         "email": "msmith@ncsu.edu",
         "firstname": "Michael",
-        "lastname": "Smith",
-        "sex": 1
+        "lastname": "Smith"
     },
     {
         "unityid": "rwalker",
         "email": "rwalker@ncsu.edu",
         "firstname": "Rachel",
-        "lastname": "Walker",
-        "sex": 0
+        "lastname": "Walker"
     }
 ]

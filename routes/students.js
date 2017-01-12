@@ -14,6 +14,47 @@ router.use(bodyParser.urlencoded({
     extended: true
 }));
 
+// Get student using either the mongo or unity id
+router.get('/:id', (req, res) => {
+    logger.debug(`In the Student '/:id' ... GET Method`);
+    let id = req.params.id;
+    if (id.match(/.{23}/)) {
+        // Get student by mongo id
+        logger.debug(`The mongo id is: ${id}`);
+        Student.findById(id, (err, student) => {
+            if (err) {
+                return res.status(500).json({
+                    message: 'An error occurred retrieving the document'
+                });
+            }
+            return res.status(200).json({
+                message: 'The student was successfully retrieved',
+                data: student
+            });
+        });
+        // Get the student by unityid
+    } else if (id.match(/.{1,8}/)) {
+        logger.debug(`The unity id is: ${id}`);
+        Student.findOne({
+            unityid: id
+        }, (err, student) => {
+            if (err) {
+                return res.status(500).json({
+                    message: 'An error occurred retrieving the document'
+                });
+            }
+            return res.status(200).json({
+                message: 'The student was successfully retrieved',
+                data: student
+            });
+        });
+    } else {
+        return res.status(500).json({
+            message: 'An error occurred retrieving the document'
+        });
+    }
+});
+
 //GET all students
 router.get('/', (req, res) => {
     logger.debug(`In the Student '/' ... GET Method`);
@@ -213,15 +254,15 @@ router.put('/', (req, res) => {
                     lastname: doc.lastname
                 }, Student).then((entry) => {
                     if (entry) {
-                        logger.info(`DUPLICATE - A duplicate document was found`);
+                        logger.info(`DUPLICATE - A duplicate student was found`);
                         doc.errors = [{
-                            message: "An identical document already exists in the collection."
+                            message: "An identical student already exists in the collection."
                         }];
                         logger.debug(`FAILED - The entry failed to update: ${util.inspect(doc)}`);
                         failed.push(doc);
                         checkIfDone();
                     } else {
-                        // Update the document
+                        // Update the student
                         Student.findByIdAndUpdate(id, {
                             active,
                             unityid,
@@ -232,17 +273,17 @@ router.put('/', (req, res) => {
                             new: true
                         }, (error, doc) => {
                             // If an error occurs while attempting the update 
-                            // add the document to the fail array
+                            // add the student to the fail array
                             if (error) {
                                 logger.error(error);
-                                logger.info(`FAILED - The document was not updated.`);
-                                logger.debug(`FAILED - The document failed to update: ${util.inspect(doc)}`);
+                                logger.info(`FAILED - The student was not updated.`);
+                                logger.debug(`FAILED - The student failed to update: ${util.inspect(doc)}`);
                                 failed.push(doc);
                                 checkIfDone();
                             }
-                            // Add the updated document to the success array
-                            logger.info(`UPDATED - The document was updated.`);
-                            logger.debug(`UPDATED - The document was updated: ${util.inspect(doc)}`);
+                            // Add the updated student to the success array
+                            logger.info(`UPDATED - The student was updated.`);
+                            logger.debug(`UPDATED - The student was updated: ${util.inspect(doc)}`);
                             passed.push(doc);
                             checkIfDone();
                         });
@@ -251,7 +292,7 @@ router.put('/', (req, res) => {
             })
             // If the initial promise is rejected, add the document to the failed array
             .catch((doc) => {
-                logger.debug(`FAILED - The entry failed to update: ${util.inspect(doc)}`);
+                logger.debug(`FAILED - The student failed to update: ${util.inspect(doc)}`);
                 failed.push(doc);
                 checkIfDone();
             })
@@ -272,21 +313,6 @@ router.delete('/', (req, res) => {
         return res.status(201).json({
             message: 'The student was removed from the database',
             data: doc
-        });
-    });
-});
-
-router.get('/:id', (req, res) => {
-    let id = req.params.id || '';
-    Student.findById(id, (err, student) => {
-        if (err) {
-            return res.status(500).json({
-                message: 'An error occurred retrieving the document'
-            });
-        }
-        return res.status(200).json({
-            message: 'The student was successfully retrieved',
-            data: student
         });
     });
 });

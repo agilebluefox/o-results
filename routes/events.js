@@ -126,7 +126,8 @@ router.post('/', (req, res) => {
             myLibs.checkForDuplicateDocs(doc, {
                     location: doc.location,
                     name: doc.name,
-                    date: doc.date
+                    date: doc.date,
+                    students: doc.students
                 }, Event)
                 // If the promise returns true, a duplicate event exists
                 // The entry represents the return value for the second promise
@@ -154,14 +155,10 @@ router.post('/', (req, res) => {
                             } else {
                                 // event has been created
                                 logger.info(`POST creating new event: ${doc}`);
-                                res.format({
-                                    // JSON response will show the newly created document
-                                    json: () => {
-                                        res.json({
-                                            message: 'The event was successfully added to the database',
-                                            data: doc
-                                        });
-                                    }
+                                // JSON response will show the newly created document
+                                res.status(201).json({
+                                    message: 'The event was successfully added to the database',
+                                    data: doc
                                 });
                             }
                         });
@@ -205,7 +202,7 @@ router.put('/', (req, res) => {
         const location = entry.location;
         const name = entry.name;
         const date = entry.date;
-        const students = entry.students;
+        const students = entry.students || [];
 
         // Store the data in the request
         let doc = {
@@ -256,13 +253,13 @@ router.put('/', (req, res) => {
                     date: doc.date,
                     _id: {
                         "$ne": doc.id
-                    }
-                    // students: doc.students
+                    },
+                    students: doc.students
                 }, Event).then((entry) => {
                     if (entry) {
-                        logger.info(`DUPLICATE - A duplicate document was found`);
+                        logger.info(`DUPLICATE - A duplicate event was found`);
                         doc.errors = [{
-                            message: "An identical document already exists in the collection."
+                            message: "An identical event already exists in the collection."
                         }];
                         logger.debug(`FAILED - The entry failed to update: ${util.inspect(doc)}`);
                         failed.push(doc);
@@ -279,17 +276,17 @@ router.put('/', (req, res) => {
                             new: true
                         }, (error, doc) => {
                             // If an error occurs while attempting the update 
-                            // add the document to the fail array
+                            // add the event to the failed array
                             if (error) {
                                 logger.error(error);
-                                logger.info(`FAILED - The document was not updated.`);
-                                logger.debug(`FAILED - The document failed to update: ${util.inspect(doc)}`);
+                                logger.info(`FAILED - The event was not updated.`);
+                                logger.debug(`FAILED - The event failed to update: ${util.inspect(doc)}`);
                                 failed.push(doc);
                                 checkIfDone();
                             }
-                            // Add the updated document to the success array
-                            logger.info(`UPDATED - The document was updated.`);
-                            logger.debug(`UPDATED - The document was updated: ${util.inspect(doc)}`);
+                            // Add the updated event to the success array
+                            logger.info(`UPDATED - The event was updated.`);
+                            logger.debug(`UPDATED - The event was updated: ${util.inspect(doc)}`);
                             passed.push(doc);
                             checkIfDone();
                         });

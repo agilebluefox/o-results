@@ -174,129 +174,114 @@ router.post('/', (req, res) => {
 });
 
 router.put('/', (req, res) => {
-    logger.debug(`In the Student route '/' ... PUT Method`);
-    // Use arrays to track passed and failed documents for final response
-    let length = req.body.length;
-    let passed = [];
-    let failed = [];
+logger.debug(`In the Student route '/' ... PUT Method`);
 
-    // Helper function to handle the response when all of the 
-    // requested updates have been processed.
-    function checkIfDone() {
-        if (passed.length + failed.length === length) {
-            let all = {
-                success: passed,
-                fail: failed,
-                errors: failed.length > 0
-            };
-            return res.status(201).json({
-                message: 'Check the data property for the results',
-                data: all
-            });
-        }
-        return;
-    }
+logger.debug(`The document in the loop is: ${util.inspect(req.body)}`);
 
-    // Iterate over the request to handle multiple updates
-    req.body.forEach((entry) => {
-        logger.debug(`The document in the loop is: ${util.inspect(entry)}`);
+// Store the properties in variables
+const id = req.body._id;
+const active = req.body.active;
+const unityid = req.body.unityid;
+const email = req.body.email;
+const firstname = req.body.firstname;
+const lastname = req.body.lastname;
 
-        // Store the properties in variables
-        const id = entry._id;
-        const active = entry.active;
-        const unityid = entry.unityid;
-        const email = entry.email;
-        const firstname = entry.firstname;
-        const lastname = entry.lastname;
+let doc = {
+    id: id,
+    active: active,
+    unityid: unityid,
+    email: email,
+    firstname: firstname,
+    lastname: lastname
+};
 
-        let doc = {
-            id: id,
-            active: active,
-            unityid: unityid,
-            email: email,
-            firstname: firstname,
-            lastname: lastname
-        };
+// Validation rules for the student document
+const checkStudent = nodeValidator.isObject()
+    .withRequired('id', customValidator.isMongoId())
+    .withOptional('active', nodeValidator.isBoolean())
+    .withRequired('unityid', nodeValidator.isString({
+        regex: /^[a-z][a-z0-9]{1,7}$/
+    }))
+    .withRequired('email', customValidator.isEmail())
+    .withRequired('firstname', nodeValidator.isString())
+    .withRequired('lastname', nodeValidator.isString());
 
-        // Validation rules for the student document
-        const checkStudent = nodeValidator.isObject()
-            .withRequired('id', customValidator.isMongoId())
-            .withOptional('active', nodeValidator.isBoolean())
-            .withRequired('unityid', nodeValidator.isString({
-                regex: /^[a-z][a-z0-9]{1,7}$/
-            }))
-            .withRequired('email', customValidator.isEmail())
-            .withRequired('firstname', nodeValidator.isString())
-            .withRequired('lastname', nodeValidator.isString());
-
-        // Validate the input for the new document
-        new Promise((resolve, reject) => {
-                nodeValidator.run(checkStudent, doc, (errorCount, errors) => {
-                    logger.info(`VALIDATION ERRORS - The number of errors is ${errorCount}`);
-                    if (errorCount === 0) {
-                        // If the input is valid, send the document without the error property
-                        resolve(doc);
-                    } else {
-                        // If the input is invalid, send the response with the errors
-                        logger.debug(`VALIDATION ERRORS - The errors found are: ${util.inspect(errors)}`);
-                        doc.errors = errors;
-                        reject(doc);
-                    }
+// Validate the input for the new document
+new Promise((resolve, reject) => {
+        nodeValidator.run(checkStudent, doc, (errorCount, errors) => {
+            logger.info(`VALIDATION ERRORS - The number of errors is ${errorCount}`);
+            if (errorCount === 0) {
+                // If the input is valid, send the document without the error property
+                resolve(doc);
+            } else {
+                // If the input is invalid, send the response with the errors
+                logger.debug(`VALIDATION ERRORS - The errors found are: ${util.inspect(errors)}`);
+                doc.errors = errors;
+                reject(doc);
+            }
+        });
+    })
+    .then((doc) => {
+        // The validation promise was resolved, now use the 
+        // validated document in a new promise that checks for duplicates
+        myLibs.checkForDuplicateDocs(doc, {
+            email: doc.email.toLowerCase(),
+            unityid: doc.unityid.toLowerCase(),
+            firstname: doc.firstname,
+            lastname: doc.lastname
+        }, Student).then((entry) => {
+            if (entry) {
+                logger.info(`DUPLICATE - A duplicate student was found`);
+                doc.error = [{
+                    message: "An identical student already exists in the collection."
+                }];
+                logger.debug(`FAILED - The entry failed to update: ${util.inspect(doc)}`);
+                return res.status(500).json({
+                    message: doc.error,
+                    data: doc
                 });
-            })
-            .then((doc) => {
-                // The validation promise was resolved, now use the 
-                // validated document in a new promise that checks for duplicates
-                myLibs.checkForDuplicateDocs(doc, {
-                    email: doc.email.toLowerCase(),
-                    unityid: doc.unityid.toLowerCase(),
-                    firstname: doc.firstname,
-                    lastname: doc.lastname
-                }, Student).then((entry) => {
-                    if (entry) {
-                        logger.info(`DUPLICATE - A duplicate student was found`);
-                        doc.errors = [{
-                            message: "An identical student already exists in the collection."
-                        }];
-                        logger.debug(`FAILED - The entry failed to update: ${util.inspect(doc)}`);
-                        failed.push(doc);
-                        checkIfDone();
-                    } else {
-                        // Update the student
-                        Student.findByIdAndUpdate(id, {
-                            active,
-                            unityid,
-                            email,
-                            firstname,
-                            lastname
-                        }, {
-                            new: true
-                        }, (error, doc) => {
-                            // If an error occurs while attempting the update 
-                            // add the student to the fail array
-                            if (error) {
-                                logger.error(error);
-                                logger.info(`FAILED - The student was not updated.`);
-                                logger.debug(`FAILED - The student failed to update: ${util.inspect(doc)}`);
-                                failed.push(doc);
-                                checkIfDone();
-                            }
-                            // Add the updated student to the success array
-                            logger.info(`UPDATED - The student was updated.`);
-                            logger.debug(`UPDATED - The student was updated: ${util.inspect(doc)}`);
-                            passed.push(doc);
-                            checkIfDone();
+            } else {
+                // Update the student
+                Student.findByIdAndUpdate(id, {
+                    active,
+                    unityid,
+                    email,
+                    firstname,
+                    lastname
+                }, {
+                    new: true
+                }, (error, doc) => {
+                    // If an error occurs while attempting the update 
+                    // add the student to the fail array
+                    if (error) {
+                        logger.error(error);
+                        logger.info(`FAILED - The student was not updated.`);
+                        logger.debug(`FAILED - The student failed to update: ${util.inspect(doc)}`);
+                        return res.status(500).json({
+                            message: error,
+                            data: doc
                         });
                     }
+                    // Add the updated student to the success array
+                    logger.info(`UPDATED - The student was updated.`);
+                    logger.debug(`UPDATED - The student was updated: ${util.inspect(doc)}`);
+                    return res.status(201).json({
+                        message: 'Check the data property for the results',
+                        data: doc
+                    });
                 });
-            })
-            // If the initial promise is rejected, add the document to the failed array
-            .catch((doc) => {
-                logger.debug(`FAILED - The student failed to update: ${util.inspect(doc)}`);
-                failed.push(doc);
-                checkIfDone();
-            })
-    });
+            }
+        });
+    })
+    // If the initial promise is rejected, add the document to the failed array
+    .catch((doc) => {
+        logger.debug(`FAILED - The student failed to update: ${util.inspect(doc)}`);
+        doc.error = 'The document could not be updated';
+        return res.status(500).json({
+            message: doc.error,
+            data: doc
+        });
+    })
 });
 
 router.delete('/', (req, res) => {

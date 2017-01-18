@@ -23,21 +23,23 @@ router.get('/:id', (req, res) => {
     logger.debug(`The event id parameter is ${id}`);
 
     // Find that event in the database
-    Event.findById(id, (err, doc) => {
-        if (err) {
-            logger.error(err);
-            return res.json({
-                title: 'An error occurred retrieving the events',
-                error: err
-            });
-        } else {
-            logger.debug(`Here is the document found: ${doc}`);
-            res.json({
-                message: 'Success, found an event with that Id',
-                data: doc
-            });
-        }
-    });
+    Event.findById(id)
+        .populate('students')
+        .exec((err, doc) => {
+            if (err) {
+                logger.error(err);
+                return res.json({
+                    title: 'An error occurred retrieving the events',
+                    error: err
+                });
+            } else {
+                logger.debug(`Here is the document found: ${doc}`);
+                res.json({
+                    message: 'Success, found an event with that Id',
+                    data: doc
+                });
+            }
+        });
 });
 
 // Get API to return a list of events
@@ -46,6 +48,7 @@ router.get('/', (req, res) => {
     Event.find({
             active: true
         })
+        .populate('students')
         .exec((err, docs) => {
             if (err) {
                 logger.error(err);
@@ -71,13 +74,18 @@ router.post('/', (req, res) => {
     const name = req.body.name;
     const date = req.body.date;
     const students = req.body.students || [];
+
+    let studentIds = students.map((student) => {
+        return student._id ? student._id : student;
+    });
+
     // Store the data in the request
     let doc = {
         active: active,
         location: location,
         name: name,
         date: date,
-        students: students
+        students: studentIds
     };
 
     // Validation rules for the students property
@@ -170,84 +178,71 @@ router.post('/', (req, res) => {
 // Put API to update one or more events
 router.put('/', (req, res) => {
     logger.debug('In the Event route ... PUT Method');
-    // Use arrays to track passed and failed documents for final response
-    let length = req.body.length;
-    let passed = [];
-    let failed = [];
 
-    // Helper function to handle the response when all of the 
-    // requested updates have been processed.
-    function checkIfDone() {
-        if (passed.length + failed.length === length) {
-            let all = {
-                success: passed,
-                fail: failed,
-                errors: failed.length > 0
-            };
-            return res.status(201).json({
-                message: 'Check the data property for the results',
-                data: all
-            });
-        }
-        return;
-    }
+    // Get the event to update
+    logger.debug(`The document in the loop is: ${util.inspect(req.body)}`);
 
-    // Iterate over the request to handle multiple updates
-    req.body.forEach((entry) => {
-        logger.debug(`The document in the loop is: ${util.inspect(entry)}`);
+    // Store the properties in variables
+    const id = req.body._id;
+    const active = req.body.active || true;
+    const location = req.body.location;
+    const name = req.body.name;
+    const date = req.body.date;
+    const students = req.body.students || [];
 
-        // Store the properties in variables
-        const id = entry._id;
-        const active = entry.active;
-        const location = entry.location;
-        const name = entry.name;
-        const date = entry.date;
-        const students = entry.students || [];
+    let studentIds = students.map((student) => {
+        return student._id ? student._id : student;
+    });
 
-        // Store the data in the request
-        let doc = {
-            id: id,
-            active: active,
-            location: location,
-            name: name,
-            date: date,
-            students: students
-        };
+    // Store the data in the request
+    let doc = {
+        id: id,
+        active: active,
+        location: location,
+        name: name,
+        date: date,
+        students: studentIds
+    };
 
+    logger.debug(`This is the document to update - `, doc);
         // Validation rules for the students property
         const checkStudent = customValidator.isMongoId();
+    // Validation rules for the event document
+    const checkEvent = nodeValidator.isObject()
+        .withRequired('id', customValidator.isMongoId())
+        .withOptional('active', nodeValidator.isBoolean())
+        .withRequired('location', customValidator.isIn({
+            list: ['lake raleigh', 'lake johnson', 'schenck forest', 'umstead park']
+        }))
+        .withRequired('name', nodeValidator.isString({
+            regex: /^[a-zA-Z0-9 ]{1,50}$/
+        }))
+        .withRequired('date', nodeValidator.isDate())
+        .withOptional('students', nodeValidator.isArray(checkStudent));
 
-        // Validation rules for the event document
-        const checkEvent = nodeValidator.isObject()
-            .withRequired('id', customValidator.isMongoId())
-            .withOptional('active', nodeValidator.isBoolean())
-            .withRequired('location', customValidator.isIn({
-                list: ['lake raleigh', 'lake johnson', 'schenck forest', 'umstead park']
-            }))
-            .withRequired('name', nodeValidator.isString({
-                regex: /^[a-zA-Z0-9 ]{1,50}$/
-            }))
-            .withRequired('date', nodeValidator.isDate())
-            .withOptional('students', nodeValidator.isArray(checkStudent));
-        // Validate the input for the new document
-        new Promise((resolve, reject) => {
-                nodeValidator.run(checkEvent, doc, (errorCount, errors) => {
-                    logger.info(`VALIDATION ERRORS - The number of errors is ${errorCount}`);
-                    if (errorCount === 0) {
-                        // If the input is valid, send the document without the error property
-                        resolve(doc);
-                    } else {
-                        // If the input is invalid, send the response with the errors
-                        logger.debug(`VALIDATION ERRORS - The errors found are: ${util.inspect(errors)}`);
-                        doc.errors = errors;
-                        reject(doc);
-                    }
-                });
-            })
-            .then((doc) => {
-                // The validation promise was resolved, now use the 
-                // validated document in a new promise that checks for duplicates
-                myLibs.checkForDuplicateDocs(doc, {
+    // Validate the input for the new document
+    new Promise((resolve, reject) => {
+            nodeValidator.run(checkEvent, doc, (errorCount, errors) => {
+                logger.info(`VALIDATION ERRORS - The number of errors is ${errorCount}`);
+                if (errorCount === 0) {
+                    // If the input is valid, send the document without the error property
+                    resolve(doc);
+                } else {
+                    // If the input is invalid, send the response with the errors
+                    logger.debug(`VALIDATION ERRORS - The errors found are: ${util.inspect(errors)}`);
+                    doc.errors = errors;
+                    reject(doc);
+                    return res.status(500).json({
+                        message: doc.errors,
+                        data: doc
+                    });
+                }
+            });
+        })
+        .then((doc) => {
+            // The validation promise was resolved, now use the 
+            // validated document in a new promise that checks for duplicates
+            myLibs.checkForDuplicateDocs(doc, {
                     location: doc.location,
                     name: doc.name,
                     date: doc.date,
@@ -255,15 +250,18 @@ router.put('/', (req, res) => {
                         "$ne": doc.id
                     },
                     students: doc.students
-                }, Event).then((entry) => {
+                }, Event)
+                .then((entry) => {
                     if (entry) {
                         logger.info(`DUPLICATE - A duplicate event was found`);
-                        doc.errors = [{
+                        doc.error = [{
                             message: "An identical event already exists in the collection."
                         }];
                         logger.debug(`FAILED - The entry failed to update: ${util.inspect(doc)}`);
-                        failed.push(doc);
-                        checkIfDone();
+                        return res.status(500).json({
+                            message: doc.error.message,
+                            data: doc
+                        });
                     } else {
                         // Make changes to the modified properties and send the object
                         Event.findByIdAndUpdate(id, {
@@ -281,25 +279,31 @@ router.put('/', (req, res) => {
                                 logger.error(error);
                                 logger.info(`FAILED - The event was not updated.`);
                                 logger.debug(`FAILED - The event failed to update: ${util.inspect(doc)}`);
-                                failed.push(doc);
-                                checkIfDone();
+                                return res.status(500).json({
+                                    message: doc.error,
+                                    data: doc
+                                });
                             }
                             // Add the updated event to the success array
                             logger.info(`UPDATED - The event was updated.`);
                             logger.debug(`UPDATED - The event was updated: ${util.inspect(doc)}`);
-                            passed.push(doc);
-                            checkIfDone();
+                            return res.status(201).json({
+                                message: 'Check the data property for the results',
+                                data: doc
+                            });
                         });
                     }
                 });
-            })
-            // If the initial promise is rejected, add the document to the failed array
-            .catch((doc) => {
-                logger.debug(`FAILED - The entry failed to update: ${util.inspect(doc)}`);
-                failed.push(doc);
-                checkIfDone();
-            })
-    });
+        })
+        // If the initial promise is rejected return an error
+        .catch((doc) => {
+            logger.debug(`FAILED - The entry failed to update: ${util.inspect(doc)}`);
+            doc.error = 'The doc was not updated';
+            return res.status(500).json({
+                message: doc.error,
+                data: doc
+            });
+        })
 });
 
 // Delete API to remove a single event

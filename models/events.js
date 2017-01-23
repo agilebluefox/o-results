@@ -10,7 +10,8 @@ const schema = new Schema({
     location: { type: String, required: true },
     name: { type: String, required: true },
     date: { type: String, required: true },
-    students: [{ type: Schema.Types.ObjectId, ref: 'Student' }]
+    students: [{ type: Schema.Types.ObjectId, ref: 'Student' }],
+    results: [{ type: Schema.Types.ObjectId, ref: 'Result' }]
 });
 
 schema.plugin(mongooseUniqueValidator);

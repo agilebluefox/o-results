@@ -74,6 +74,7 @@ router.post('/', (req, res) => {
     const name = req.body.name;
     const date = req.body.date;
     const students = req.body.students || [];
+    const results = req.body.results || [];
 
     let studentIds = students.map((student) => {
         return student._id ? student._id : student;
@@ -81,11 +82,12 @@ router.post('/', (req, res) => {
 
     // Store the data in the request
     let doc = {
-        active: active,
-        location: location,
-        name: name,
-        date: date,
-        students: studentIds
+        active,
+        location,
+        name,
+        date,
+        students: studentIds,
+        results
     };
 
     // Validation rules for the students property
@@ -135,7 +137,8 @@ router.post('/', (req, res) => {
                     location: doc.location,
                     name: doc.name,
                     date: doc.date,
-                    students: doc.students
+                    students: doc.students,
+                    results: doc.results
                 }, Event)
                 // If the promise returns true, a duplicate event exists
                 // The entry represents the return value for the second promise
@@ -153,7 +156,8 @@ router.post('/', (req, res) => {
                             location,
                             name,
                             date,
-                            students
+                            students,
+                            results
                         }, (err, doc) => {
                             if (err) {
                                 res.send({
@@ -189,6 +193,7 @@ router.put('/', (req, res) => {
     const name = req.body.name;
     const date = req.body.date;
     const students = req.body.students || [];
+    const results = req.body.results || [];
 
     let studentIds = students.map((student) => {
         return student._id ? student._id : student;
@@ -196,17 +201,36 @@ router.put('/', (req, res) => {
 
     // Store the data in the request
     let doc = {
-        id: id,
-        active: active,
-        location: location,
-        name: name,
-        date: date,
-        students: studentIds
+        id,
+        active,
+        location,
+        name,
+        date,
+        students: studentIds,
+        results
     };
 
+    function getDoc(id) {
+        // Find that event in the database
+        let p = new Promise((resolve, reject) => {
+            Event.findById(id)
+                .populate('students')
+                .exec((err, doc) => {
+                    if (err) {
+                        logger.error(err);
+                        reject(err);
+                    } else {
+                        logger.debug(`Here is the document found: ${doc}`);
+                        resolve(doc);
+                    }
+                });
+        })
+        return p;
+    }
+
     logger.debug(`This is the document to update - `, doc);
-        // Validation rules for the students property
-        const checkStudent = customValidator.isMongoId();
+    // Validation rules for the students property
+    const checkStudent = customValidator.isMongoId();
     // Validation rules for the event document
     const checkEvent = nodeValidator.isObject()
         .withRequired('id', customValidator.isMongoId())
@@ -249,7 +273,8 @@ router.put('/', (req, res) => {
                     _id: {
                         "$ne": doc.id
                     },
-                    students: doc.students
+                    students: doc.students,
+                    results: doc.results
                 }, Event)
                 .then((entry) => {
                     if (entry) {
@@ -258,10 +283,12 @@ router.put('/', (req, res) => {
                             message: "An identical event already exists in the collection."
                         }];
                         logger.debug(`FAILED - The entry failed to update: ${util.inspect(doc)}`);
-                        return res.status(500).json({
-                            message: doc.error.message,
-                            data: doc
-                        });
+                        getDoc(doc.id).then((doc) => {
+                                return res.status(201).json({
+                                    message: 'Check the data property for the results',
+                                    data: doc
+                                });
+                            });
                     } else {
                         // Make changes to the modified properties and send the object
                         Event.findByIdAndUpdate(id, {
@@ -269,7 +296,8 @@ router.put('/', (req, res) => {
                             location,
                             name,
                             date,
-                            students
+                            students,
+                            results
                         }, {
                             new: true
                         }, (error, doc) => {
@@ -287,9 +315,11 @@ router.put('/', (req, res) => {
                             // Add the updated event to the success array
                             logger.info(`UPDATED - The event was updated.`);
                             logger.debug(`UPDATED - The event was updated: ${util.inspect(doc)}`);
-                            return res.status(201).json({
-                                message: 'Check the data property for the results',
-                                data: doc
+                            getDoc(doc.id).then((doc) => {
+                                return res.status(201).json({
+                                    message: 'Check the data property for the results',
+                                    data: doc
+                                });
                             });
                         });
                     }

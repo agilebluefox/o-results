@@ -24,7 +24,7 @@ router.get('/:id', (req, res) => {
 
     // Find that event in the database
     Event.findById(id)
-        .populate('students')
+        .populate('results.student')
         .exec((err, doc) => {
             if (err) {
                 logger.error(err);
@@ -48,7 +48,7 @@ router.get('/', (req, res) => {
     Event.find({
             active: true
         })
-        .populate('students')
+        .populate('results.student')
         .exec((err, docs) => {
             if (err) {
                 logger.error(err);
@@ -73,11 +73,12 @@ router.post('/', (req, res) => {
     const location = req.body.location;
     const name = req.body.name;
     const date = req.body.date;
-    const students = req.body.students || [];
     const results = req.body.results || [];
 
-    let studentIds = students.map((student) => {
-        return student._id ? student._id : student;
+     let resultsWithStudentIds = results.map((result) => {
+        let student = result.student;
+        result.student = student._id;
+        return result;
     });
 
     // Store the data in the request
@@ -86,13 +87,12 @@ router.post('/', (req, res) => {
         location,
         name,
         date,
-        students: studentIds,
-        results
+        results: resultsWithStudentIds
     };
 
-    // Validation rules for the students property
-    const checkStudent = nodeValidator.isObject()
-        .withRequired('_id', customValidator.isMongoId());
+    // // Validation rules for the students property
+    // const checkStudent = nodeValidator.isObject()
+    //     .withRequired('_id', customValidator.isMongoId());
 
     // Validation rules for the event document
     const checkEvent = nodeValidator.isObject()
@@ -104,7 +104,7 @@ router.post('/', (req, res) => {
             regex: /^[a-zA-Z0-9 ]{1,50}$/
         }))
         .withRequired('date', nodeValidator.isDate())
-        .withOptional('students', nodeValidator.isArray(checkStudent));
+        .withOptional('results', nodeValidator.isArray());
 
     // Validate the input for the new document
     new Promise((resolve, reject) => {
@@ -137,7 +137,6 @@ router.post('/', (req, res) => {
                     location: doc.location,
                     name: doc.name,
                     date: doc.date,
-                    students: doc.students,
                     results: doc.results
                 }, Event)
                 // If the promise returns true, a duplicate event exists
@@ -156,7 +155,6 @@ router.post('/', (req, res) => {
                             location,
                             name,
                             date,
-                            students,
                             results
                         }, (err, doc) => {
                             if (err) {
@@ -184,7 +182,7 @@ router.put('/', (req, res) => {
     logger.debug('In the Event route ... PUT Method');
 
     // Get the event to update
-    logger.debug(`The document in the loop is: ${util.inspect(req.body)}`);
+    logger.debug(`The event to update is: ${util.inspect(req.body)}`);
 
     // Store the properties in variables
     const id = req.body._id;
@@ -192,11 +190,14 @@ router.put('/', (req, res) => {
     const location = req.body.location;
     const name = req.body.name;
     const date = req.body.date;
-    const students = req.body.students || [];
     const results = req.body.results || [];
 
-    let studentIds = students.map((student) => {
-        return student._id ? student._id : student;
+    let resultsWithStudentIds = results.map((result) => {
+        let student = result.student;
+        logger.debug(`The student is: `, student);
+        result.student = student._id;
+        logger.debug(`The student id to store in the db is: ${result.student}`);
+        return result;
     });
 
     // Store the data in the request
@@ -206,21 +207,20 @@ router.put('/', (req, res) => {
         location,
         name,
         date,
-        students: studentIds,
-        results
+        results: resultsWithStudentIds
     };
 
     function getDoc(id) {
         // Find that event in the database
         let p = new Promise((resolve, reject) => {
             Event.findById(id)
-                .populate('students')
+                .populate('results.student')
                 .exec((err, doc) => {
                     if (err) {
                         logger.error(err);
                         reject(err);
                     } else {
-                        logger.debug(`Here is the document found: ${doc}`);
+                        logger.debug(`Here is the event document found: ${doc}`);
                         resolve(doc);
                     }
                 });
@@ -228,9 +228,7 @@ router.put('/', (req, res) => {
         return p;
     }
 
-    logger.debug(`This is the document to update - `, doc);
-    // Validation rules for the students property
-    const checkStudent = customValidator.isMongoId();
+    logger.debug(`This is the event to update - `, doc);
     // Validation rules for the event document
     const checkEvent = nodeValidator.isObject()
         .withRequired('id', customValidator.isMongoId())
@@ -242,7 +240,7 @@ router.put('/', (req, res) => {
             regex: /^[a-zA-Z0-9 ]{1,50}$/
         }))
         .withRequired('date', nodeValidator.isDate())
-        .withOptional('students', nodeValidator.isArray(checkStudent));
+        .withOptional('results', nodeValidator.isArray());
 
     // Validate the input for the new document
     new Promise((resolve, reject) => {
@@ -273,7 +271,6 @@ router.put('/', (req, res) => {
                     _id: {
                         "$ne": doc.id
                     },
-                    students: doc.students,
                     results: doc.results
                 }, Event)
                 .then((entry) => {
@@ -285,7 +282,7 @@ router.put('/', (req, res) => {
                         logger.debug(`FAILED - The entry failed to update: ${util.inspect(doc)}`);
                         getDoc(doc.id).then((doc) => {
                                 return res.status(201).json({
-                                    message: 'Check the data property for the results',
+                                    message: 'An identical event exists in the collection.',
                                     data: doc
                                 });
                             });
@@ -296,7 +293,6 @@ router.put('/', (req, res) => {
                             location,
                             name,
                             date,
-                            students,
                             results
                         }, {
                             new: true
@@ -317,7 +313,7 @@ router.put('/', (req, res) => {
                             logger.debug(`UPDATED - The event was updated: ${util.inspect(doc)}`);
                             getDoc(doc.id).then((doc) => {
                                 return res.status(201).json({
-                                    message: 'Check the data property for the results',
+                                    message: 'The event was updated',
                                     data: doc
                                 });
                             });

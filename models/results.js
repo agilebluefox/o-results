@@ -6,11 +6,10 @@ const Schema = mongoose.Schema;
 const mongooseUniqueValidator = require('mongoose-unique-validator');
 
 const schema = new Schema({
-    eventId: [{ type: Schema.Types.ObjectId, ref: 'Event'}],
-    studentId: [{ type: Schema.Types.ObjectId, ref: 'Student' }],
-    cardNo: { type: String },
-    status: { type: String },
-    course: { type: String },
+    student: { type: Schema.Types.ObjectId, ref: 'Student', required: true },
+    cardNo: { type: String, default: '' },
+    status: { type: Number, min: 0, max: 4, default: 0 },
+    course: { type: String, default: '' }
 });
 
 schema.plugin(mongooseUniqueValidator);

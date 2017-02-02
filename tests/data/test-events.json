@@ -3,49 +3,49 @@
        "location": "Lake Raleigh",
        "name": "Lake Raleigh Score Event",
        "date": "2016-02-09",
-       "students": []
+       "results": []
     },
     {
        "location": "Lake Johnson",
        "name": "Lake Johnson Event",
        "date": "2016-02-16",
-       "students": []
+       "results": []
     },
     {
        "location": "Schenck Forest",
        "name": "Schenck Forest Event",
        "date": "2016-02-20",
-       "students": []
+       "results": []
     },
     {
        "location": "Umstead Park",
        "name": "Umstead Park Event",
        "date": "2016-02-27",
-       "students": []
+       "results": []
     },
     {
        "location": "Lake Raleigh",
        "name": "Lake Raleigh Score Event",
        "date": "2015-11-02",
-       "students": []
+       "results": []
     },
     {
        "location": "Lake Johnson",
        "name": "Lake Johnson Event",
        "date": "2015-11-07",
-       "students": []
+       "results": []
     },
     {
        "location": "Schenck Forest",
        "name": "Schenck Forest Event",
        "date": "2015-11-14",
-       "students": []
+       "results": []
     },
     {
        "location": "Umstead Park",
        "name": "Umstead Park Event",
        "date": "2016-12-02",
-       "students": []
+       "results": []
     }
     
 ]

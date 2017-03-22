@@ -344,7 +344,7 @@ router.delete('/', (req, res) => {
                 data: doc
             });
         }
-        res.status(201).json({
+        res.status(200).json({
             message: 'The event was removed from the database',
             data: doc
         });

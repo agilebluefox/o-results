@@ -1,6 +1,6 @@
 # O-Results Node JS Server
 
-This is the server and database portion for the O-Results application. It provides data models, RESTful API's for various routes, data validation and a customizable logging system.
+The server and database portion for the O-Results application. It provides data models, RESTful API's for various routes, data validation and a customizable logging system.
 
 ## Technical Skills
 

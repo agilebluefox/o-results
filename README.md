@@ -1,10 +1,10 @@
 # O-Results NodeJS Server
 
-Imports orienteering results from the O-Results App, stores the data, and renders reports for grading, analysis, and assessment
+This is the server and database portion for the O-Results application. It provides data models, RESTful API's for various routes, data validation and a customizable logging system.
 
 ## Technical Skills
 
-Express, Gulp, Mocha and Chai, MongoDB, Mongoose, Node, Node-Validator, Winston
+Express, Git/Github, Gulp, Mocha and Chai, MongoDB, Mongoose, Node, Node-Validator, Winston
 
 ## Breakdown
 

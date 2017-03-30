@@ -16,4 +16,4 @@ I'm very interested in including testing and logging features into my applicatio
 
 ## Run the Code
 
-To begin, use `npm install` to download the packages and dependencies required by the server. Next, edit the 'mongod' script in  package.json to point to the location of the MongoDb database on your machine. Finally, run `npm start` to activate the server instance.
+To begin, use `npm install` to download the packages and dependencies required by the server. Next, edit the 'mongod' script in  package.json to point to the location of the MongoDb database on your machine. To populate the database required for the app, run `npm tests` to ensure the data is ready and all the associated tests are passing. Finally, run `npm start` to activate the server instance.

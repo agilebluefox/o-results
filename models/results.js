@@ -6,14 +6,10 @@ const Schema = mongoose.Schema;
 const mongooseUniqueValidator = require('mongoose-unique-validator');
 
 const schema = new Schema({
-    active: { type: Boolean, default: true },
-    // Each set of results is connected to an event, course, and student
-    event: { type: Schema.Types.ObjectId, ref: 'Event', required: true },
-    course: { type: Schema.Types.ObjectId, ref: 'Course', required: true },
-    card: { type: String, required: true },
     student: { type: Schema.Types.ObjectId, ref: 'Student', required: true },
-    cn: { type: String, required: true },
-    time: { type: Date, required: true }
+    cardNo: { type: String, default: '' },
+    status: { type: Number, min: 0, max: 4, default: 0 },
+    course: { type: String, default: '' }
 });
 
 schema.plugin(mongooseUniqueValidator);

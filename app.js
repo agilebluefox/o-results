@@ -10,12 +10,7 @@ const db = require('./bin/db'); // eslint-disable-line
 
 // Prepare routes
 const routes = require('./routes/index');
-const classes = require('./routes/classes');
-const cards = require('./routes/cards');
-const controls = require('./routes/controls');
-const courses = require('./routes/courses');
 const events = require('./routes/events');
-const results = require('./routes/results');
 const students = require('./routes/students');
 
 // Load the app
@@ -23,9 +18,9 @@ const app = express();
 
 const logger = require('./libs/logger');
 
-logger.info('Hello world');
-logger.warn('Warning message');
-logger.debug('Debugging info');
+logger.info('Server Started!');
+logger.warn('Warning messages look like this.');
+logger.debug('Debugging info looks like this.');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -69,12 +64,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
-app.use('/classes', classes);
-app.use('/cards', cards);
-app.use('/controls', controls);
-app.use('/courses', courses);
 app.use('/events', events);
-app.use('/results', results);
 app.use('/students', students);
 
 // catch 404 and forward to error handler

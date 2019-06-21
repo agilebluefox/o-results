@@ -303,4 +303,19 @@ router.route('/')
         });
     });
 
+router.route('/:id').get((req, res) => {
+    let id = req.params.id || '';
+    Student.findById(id, (err, student) => {
+        if (err) {
+            return res.status(500).json({
+                message: 'An error occurred retrieving the document'
+            });
+        }
+        return res.status(200).json({
+            message: 'The student was successfully retrieved',
+            student: student
+        });
+    });
+});
+
 module.exports = router;

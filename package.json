@@ -28,7 +28,7 @@
     "express-winston": "^2.0.0",
     "method-override": "^2.3.6",
     "mocha": "^3.0.2",
-    "mongoose": "^4.5.10",
+    "mongoose": "^5.7.7",
     "mongoose-unique-validator": "^1.0.2",
     "node-validator": "^0.1.23",
     "pug": "^2.0.0-beta6",
